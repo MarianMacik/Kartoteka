@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>TODO supply a title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </h:head>
+    <body>
+        <div>Schema</div>
+
+        <h:form>
+            <h2><h:outputText value="#{schemaManagerBean.schema.title}" rendered="#{not schemaManagerBean.schemaNameEditMode}"/></h2>
+            <h2><h:inputText id="schemaNameInput" value="#{schemaManagerBean.schema.title}" rendered="#{schemaManagerBean.schemaNameEditMode}"/></h2>
+            <p:messages id="schemaNameErrorMessage"/>
+            <p:commandButton value="Edit schema name" 
+                             action="#{schemaManagerBean.setSchemaNameEditMode(true)}" update="@all" rendered="#{not schemaManagerBean.schemaNameEditMode}" />
+            <p:commandButton value="Finish editing" 
+                             action="#{schemaManagerBean.updateSchemaName(testBean.schemas, testBean.selectedDB)}" update="@form" rendered="#{schemaManagerBean.schemaNameEditMode}"
+                             actionListener="#{testBean.loadUserSchemas()}"/>
+        </h:form>
+
+        <h3>#{schemaManagerBean.schema.id}</h3>
+        <h:form id="tableForm">
+            <p:dataTable id="table" value="#{schemaManagerBean.schema.fields}" var="coll">
+
+                <p:column headerText="Title of field" >    				
+                    <h:outputText value="#{coll.fieldTitle}"/>
+                </p:column>
+                <p:column headerText="Mandatory">
+                    <h:outputText value="#{coll.mandatory}"/>
+                </p:column>
+                <p:column headerText="Constraint">
+                    <h:outputText value="#{coll.constraint}"/>
+                </p:column>
+                <p:column headerText="Repeatable">
+                    <h:outputText value="#{coll.repeatable}"/>
+                </p:column>
+                <p:column headerText="Erase">
+                    <p:commandButton value="Delete" 
+                                     actionListener="#{schemaManagerBean.removeSchemaField(coll, testBean.selectedDB)}" update="@all">
+                        <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
+                    </p:commandButton>
+                    
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
+                        <div style="text-align: center" >
+                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                        </div>
+                    </p:confirmDialog>  
+                </p:column>
+                <p:column headerText="Edit">
+                    <p:commandButton value="Edit" 
+                                     oncomplete="PF('editSchemaFieldDialog').show()"
+                                     icon="ui-icon-pencil" update=":dialogForSchemaFieldEdit" actionListener="#{schemaManagerBean.copySchemaFieldToEdit(coll)}">
+                    </p:commandButton>
+                </p:column>
+            </p:dataTable>
+
+            <h:form>
+                <p:commandButton  oncomplete="PF('addSchemaFieldDialog').show()" value="Add Schema Field" icon="ui-icon-plusthick" />  
+            </h:form>
+        </h:form>
+
+        <h:form>
+            <p:commandLink value="Back to home" action="index.xhtml?faces-redirect=true" ajax="false"/>
+        </h:form>
+
+        <p:dialog header="Add Schema Field" widgetVar="addSchemaFieldDialog" id="dialogForSchemaFieldAdd" width="450">  
+            <h:form>
+                <div align="center">
+                    <p:messages id="regexMessageAdd" autoUpdate="false"/>
+                </div>
+                <h:panelGrid columns="2">
+                    <p:outputLabel for="fieldTitle" value="Title: "/>
+                    <p:inputText id="fieldTitle" size="17" value="#{schemaManagerBean.newSchemaField.fieldTitle}" />
+
+                    <p:outputLabel for="mandatory" value="Mandatory: "/>
+                    <p:selectBooleanCheckbox id="mandatory" value="#{schemaManagerBean.newSchemaField.mandatory}" />
+
+                    <p:outputLabel for="constraint" value="Constraint: "/>
+                    <p:selectOneMenu id="constraint" value="#{schemaManagerBean.newSchemaField.constraint}" editable="true">  
+                        <f:selectItem itemLabel="Numbers" />  
+                        <f:selectItem itemLabel="Numbers and letters"  />  
+                        <f:selectItem itemLabel="Letters"  /> 
+                        <f:selectItem itemLabel="True/False"  /> 
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="repeatable" value="Repeatable: "/>
+                    <p:selectBooleanCheckbox id="repeatable" value="#{schemaManagerBean.newSchemaField.repeatable}" />
+                </h:panelGrid>
+
+                <div align="center">
+                    <p:commandButton value="Add SchemaField" 
+                                     action="#{schemaManagerBean.addSchemaField(testBean.selectedDB)}" update="@form :tableForm" />
+                </div>
+            </h:form>
+        </p:dialog>
+
+        <p:dialog header="Edit Schema Field" widgetVar="editSchemaFieldDialog" id="dialogForSchemaFieldEdit" width="450" > 
+            <h:form>
+                <div align="center">
+                    <p:messages id="regexMessageAdd" autoUpdate="false"/>
+                </div>
+                <h:panelGrid columns="2">
+                    <p:outputLabel for="fieldTitle" value="Title: "/>
+                    <p:inputText id="fieldTitle" size="15" value="#{schemaManagerBean.schemaFieldToEdit.fieldTitle}" />
+
+                    <p:outputLabel for="mandatory" value="Mandatory: "/>
+                    <p:selectBooleanCheckbox id="mandatory" value="#{schemaManagerBean.schemaFieldToEdit.mandatory}" />
+
+                    <p:outputLabel for="constraint" value="Constraint: "/>
+                    <p:selectOneMenu id="constraint" value="#{schemaManagerBean.schemaFieldToEdit.constraint}" editable="true">  
+                        <f:selectItem itemLabel="Numbers"  />  
+                        <f:selectItem itemLabel="Numbers and letters"  />  
+                        <f:selectItem itemLabel="Letters"  /> 
+                        <f:selectItem itemLabel="True/False"  /> 
+                    </p:selectOneMenu>
+
+                    <p:outputLabel for="repeatable" value="Repeatable: "/>
+                    <p:selectBooleanCheckbox id="repeatable" value="#{schemaManagerBean.schemaFieldToEdit.repeatable}" />
+                </h:panelGrid>
+
+                <div align="center">
+                    <p:commandButton value="Edit SchemaField" 
+                                     action="#{schemaManagerBean.editSchemaField(testBean.selectedDB)}" update="@form :tableForm" />
+                </div>
+            </h:form>
+        </p:dialog>
+    </body>
+</html>

@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>Facelet Title</title>
+    </h:head>
+    <h:body onload="#{testBean.loadUserSchemas()}">
+        Hello from Facelets
+        <br />
+        <h:form>
+            <h:dataTable value="#{testBean.schemas}" var="coll" >
+
+                <h:column>    				
+                    <f:facet name="header">Name</f:facet>    				
+
+                    <h:outputText value="#{coll.value}"/>
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Edit</f:facet>
+                    <p:commandButton value="Edit Schema" 
+                                     action="#{schemaManagerBean.setSchemaAndShow(coll.key, testBean.selectedDB)}"> 
+                    </p:commandButton>
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Delete</f:facet>
+                    <p:commandButton value="Delete" 
+                                     actionListener="#{schemaManagerBean.removeSchema(coll, testBean.selectedDB)}" update="@all"> 
+                        <p:confirm header="Confirmation" message="Are you sure? You will lose all data in this collection." icon="ui-icon-alert" />  
+                    </p:commandButton>
+
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode" style="text-align: center; alignment-adjust: middle">  
+                        <div style="text-align: center" >
+                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
+                        </div>
+                    </p:confirmDialog>  
+                </h:column>
+                <h:column>
+                    <f:facet name="header">View Data</f:facet>
+                    <p:commandButton value="View Data" 
+                                     action="#{filingCabinetManagerBean.loadFilingCabinetAndShow(coll.key, testBean.selectedDB)}"> 
+                    </p:commandButton>
+                </h:column>
+
+            </h:dataTable>
+
+
+<!--            <p:commandButton value="Zobraz" actionListener="#{testBean.loadUserSchemas()}" update="@form" />-->
+
+
+
+        </h:form>
+
+        <h:form>
+            <p:commandButton  oncomplete="PF('addSchemaDialog').show()" value="Add Schema" icon="ui-icon-plusthick" />  
+        </h:form>
+        
+        <p:dialog header="Add Schema" widgetVar="addSchemaDialog" id="dialogForSchema" width="320">  
+            <h:form>
+                <div align="center">
+                    <p:messages id="schemaValidationErrorMessage" autoUpdate="false"/>
+                    <h:panelGrid columns="2">
+                        <p:outputLabel for="schemaNameInput" value="Schema name: "/>
+                        <p:inputText id="schemaNameInput" size="10" value="#{schemaManagerBean.newSchemaToAdd.title}"/>
+                    </h:panelGrid>
+                    <p:commandButton value="Add Schema" actionListener="#{schemaManagerBean.addSchema(testBean.schemas, testBean.selectedDB)}" update="@form"/>
+                </div>
+            </h:form>
+        </p:dialog>
+
+        <h:link outcome="welcomePrimefaces" value="Primefaces welcome page" />
+    </h:body>
+</html>
+

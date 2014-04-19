@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>TODO supply a title</title>
+        <!--        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>-->
+    </h:head>
+    <body>
+        <div>Cabinet</div>
+        <h2><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.title}"/></h2>
+
+        <h:form id="table">
+            <p:commandButton id="downloadLink" value="Export data" ajax="false"  actionListener="#{dataExporterBean.prepareDownload(filingCabinetManagerBean.filingCabinet.schema.title, testBean.selectedDB)}"  
+                             icon="ui-icon-arrowthick-1-s">  
+                <p:fileDownload value="#{dataExporterBean.file}" />  
+            </p:commandButton>  
+            <p:dataGrid value="#{filingCabinetManagerBean.filingCabinet.filingCabinetData}" var="cabinetCard" paginator="true" columns="1" rows="1" paginatorPosition="top" 
+                        rowsPerPageTemplate="1,2,3,4,5,6,7,8"
+                        currentPageReportTemplate="{startRecord}-{endRecord} z {totalRecords}"
+                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+                <p:panel header="#{cabinetCard.id}">
+
+                    <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
+
+                        <h:column><h:outputText value="#{schemaField.fieldTitle}:" style="font-size: 20px;font-weight: bold"/></h:column>
+                        <h:column>
+                            <ul>
+                                <ui:repeat value="#{cabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
+                                    <li><h:outputText value="#{data.string}"/></li>
+                                </ui:repeat>
+                            </ul>     
+                        </h:column>
+                    </h:dataTable>
+
+                    <p:commandButton value="Edit item" 
+                                     oncomplete="PF('editDialog').show()" icon="ui-icon-pencil" update=":dialogForEdit" actionListener="#{filingCabinetManagerBean.copyCabinetCardToEdit(cabinetCard)}">
+                    </p:commandButton>
+
+                    <p:commandButton value="Delete item" 
+                                     actionListener="#{filingCabinetManagerBean.removeCabinetCard(cabinetCard, testBean.selectedDB)}" update="@all" icon="ui-icon-closethick">
+                        <p:confirm header="Confirmation" message="Do you really want to delete this item?" icon="ui-icon-alert" />  
+                    </p:commandButton>
+
+                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
+                        <div style="text-align: center" >
+                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                        </div>
+                    </p:confirmDialog>  
+                </p:panel>
+            </p:dataGrid>
+        </h:form>
+
+        <h:form>
+            <p:commandButton  oncomplete="PF('addDialog').show()" value="Add" icon="ui-icon-plusthick" />  
+        </h:form>
+
+        <p:dialog header="Add data" widgetVar="addDialog" height='650'>  
+            <h:form id="addForm">
+
+                <h:dataTable id="dataTable" value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
+
+                    <h:column><h:outputText value="#{schemaField.fieldTitle}:" style="font-size: 20px;font-weight: bold"/></h:column>
+                    <h:column>
+                        <ul>
+                            <p:commandButton icon="ui-icon-plusthick" actionListener="#{filingCabinetManagerBean.addDataField(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField),filingCabinetManagerBean.newCabinetCard)}"
+                                             update="@form"  rendered="#{empty filingCabinetManagerBean.newCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}"/>
+                            <h:dataTable value="#{filingCabinetManagerBean.newCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
+                                <h:column>         
+                                    <li>
+                                        <p:inputText value="#{data.string}" rendered="#{not (schemaField.constraint eq &quot;True/False&quot;)}"/>
+                                        <p:selectOneButton value="#{data.string}" rendered="#{schemaField.constraint eq &quot;True/False&quot;}">  
+                                            <f:selectItem itemLabel="True" itemValue="True" />  
+                                            <f:selectItem itemLabel="False" itemValue="False" />  
+                                        </p:selectOneButton>  
+                                    </li> 
+                                </h:column> 
+
+                                <h:column>
+                                    <p:commandButton actionListener="#{filingCabinetManagerBean.removeDataField(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField), filingCabinetManagerBean.newCabinetCard, data)}" 
+                                                     icon="ui-icon-closethick" update="@form" rendered="#{schemaField.repeatable or ((not schemaField.repeatable) and filingCabinetManagerBean.newCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data.size() == 1)}"/>
+
+                                </h:column>
+                                <h:column>
+                                    <p:commandButton icon="ui-icon-plusthick" actionListener="#{filingCabinetManagerBean.addDataField(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField), filingCabinetManagerBean.newCabinetCard)}"
+                                                     update="@form"  rendered="#{schemaField.repeatable and filingCabinetManagerBean.newCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data.lastIndexOf(data) 
+                                                                                 == (filingCabinetManagerBean.newCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data.size()-1)}"/>
+
+                                </h:column>
+
+                            </h:dataTable>
+                        </ul>     
+                    </h:column>
+
+                </h:dataTable>
+                <p:messages id="validationMessage" />
+                <div style="text-align: center" >
+                    <p:commandButton value="Add data" 
+                                     action="#{filingCabinetManagerBean.addNewCabinetCard(testBean.selectedDB)}" update=":table @form"/>
+                </div>
+            </h:form>
+        </p:dialog>  
+
+
+        <p:dialog header="Edit data" widgetVar="editDialog" id="dialogForEdit" height='650'>  
+            <h:form id="editForm">
+                <h:dataTable id="dataTable" value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
+
+                    <h:column><h:outputText value="#{schemaField.fieldTitle}:" style="font-size: 20px;font-weight: bold"/></h:column>
+                    <h:column>
+                        <ul>
+                            <p:commandButton icon="ui-icon-plusthick" actionListener="#{filingCabinetManagerBean.addDataField(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField), filingCabinetManagerBean.editCabinetCard)}"
+                                             update="@form"  rendered="#{empty filingCabinetManagerBean.editCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}"/>
+                            <h:dataTable value="#{filingCabinetManagerBean.editCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
+                                <h:column>         
+                                    <li>
+                                        <p:inputText value="#{data.string}" rendered="#{not (schemaField.constraint eq &quot;True/False&quot;)}"/>
+                                        <p:selectOneButton value="#{data.string}" rendered="#{schemaField.constraint eq &quot;True/False&quot;}">  
+                                            <f:selectItem itemLabel="True" itemValue="True" />  
+                                            <f:selectItem itemLabel="False" itemValue="False" />  
+                                        </p:selectOneButton>  
+                                    </li> 
+                                </h:column> 
+
+                                <h:column>
+                                    <p:commandButton actionListener="#{filingCabinetManagerBean.removeDataField(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField), filingCabinetManagerBean.editCabinetCard, data)}" 
+                                                     icon="ui-icon-closethick" update="@form" rendered="#{schemaField.repeatable  or ((not schemaField.repeatable) and filingCabinetManagerBean.editCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data.size() == 1)}"/>
+
+                                </h:column>
+                                <h:column>
+                                    <p:commandButton icon="ui-icon-plusthick" actionListener="#{filingCabinetManagerBean.addDataField(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField), filingCabinetManagerBean.editCabinetCard)}"
+                                                     update="@form"  rendered="#{schemaField.repeatable and filingCabinetManagerBean.editCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data.lastIndexOf(data) 
+                                                                                 == (filingCabinetManagerBean.editCabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data.size()-1)}"/>
+
+                                </h:column>
+
+                            </h:dataTable>
+                        </ul>     
+                    </h:column>
+                    
+                </h:dataTable>
+                <p:messages id="validationMessage" />
+                <div style="text-align: center" >
+                    <p:commandButton value="Finish editing" 
+                                     action="#{filingCabinetManagerBean.editCabinetCard(testBean.selectedDB)}" update=":table @form" />
+                </div>
+            </h:form>
+        </p:dialog>  
+    </body>
+</html>
