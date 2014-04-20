@@ -11,7 +11,7 @@ public class TrueFalseValidator implements Validator {
 
     @Override
     public boolean validate(String value) {
-        return value.matches("True|False");
+        return value.matches("True|False|");
     }
 
     @Override
