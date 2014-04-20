@@ -10,6 +10,7 @@ import cz.muni.fi.pv168.validator.LetterValidator;
 import cz.muni.fi.pv168.validator.NumberAndLetterValidator;
 import cz.muni.fi.pv168.validator.NumberValidator;
 import cz.muni.fi.pv168.validator.RegexValidator;
+import cz.muni.fi.pv168.validator.TrueFalseValidator;
 import cz.muni.fi.pv168.validator.Validator;
 import org.bson.types.ObjectId;
 
@@ -31,12 +32,13 @@ public class SchemaField {
 
     private Validator validator;
 
-    SchemaField(ObjectId id, String fieldTitle, boolean mandatory, String constraint, boolean repeatable) {
+    SchemaField(ObjectId id, String fieldTitle, boolean mandatory, String constraint, boolean repeatable, Validator validator) {
         this.id = id;
         this.fieldTitle = fieldTitle;
         this.mandatory = mandatory;
         this.constraint = constraint;
         this.repeatable = repeatable;
+        this.validator = validator;
     }
 
     SchemaField() {
@@ -60,7 +62,7 @@ public class SchemaField {
         repeatable = object.getBoolean("repeatable");
 
         //if it is not True/False - we have to insert validator
-        if (!constraint.equals("True/False")) {
+        if (!constraint.equals("File")) {
             switch (constraint) {
                 case "Numbers":
                     validator = new NumberValidator();
@@ -70,6 +72,9 @@ public class SchemaField {
                     break;
                 case "Numbers and letters":
                     validator = new NumberAndLetterValidator();
+                    break;
+                case "True/False":
+                    validator = new TrueFalseValidator();
                     break;
                 default:
                     validator = new RegexValidator(constraint);

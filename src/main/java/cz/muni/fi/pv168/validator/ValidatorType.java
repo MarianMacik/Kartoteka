@@ -11,5 +11,5 @@ package cz.muni.fi.pv168.validator;
  * @author Majo
  */
 public enum ValidatorType {
-    NUMBER, LETTER, NUMBER_AND_LETTER, REGEX;
+    NUMBER, LETTER, NUMBER_AND_LETTER, REGEX, TRUE_FALSE;
 }
