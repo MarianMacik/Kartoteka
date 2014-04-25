@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    <h:head>
+        <title>TODO supply a title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </h:head>
+    <h:body>
+
+
+        <p:panel header="#{fileUploadBean.actualCard.id}">
+
+            <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
+
+                <h:column><h:outputText value="#{schemaField.fieldTitle}:" style="font-size: 20px;font-weight: bold"/></h:column>
+                <h:column>
+                    <ul>
+                        <h:dataTable value="#{fileUploadBean.actualCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
+                            <h:column>
+                                <li><h:outputText value="#{data.string}"/></li>
+                            </h:column>
+                        </h:dataTable>
+                    </ul>     
+                </h:column>
+            </h:dataTable>
+
+            <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}" style="vertical-align: top">
+                <h:column><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}: " style="font-size: 20px;font-weight: bold"/></h:column>
+                <h:column>
+                    <ul>
+                        <li><h:outputText value="No data"/></li>
+                    </ul>     
+                </h:column>
+            </h:dataTable>
+
+            <h:form enctype="multipart/form-data">
+                <p:fileUpload fileUploadListener="#{fileUploadBean.uploadFile}" mode="advanced" dragDropSupport="false"  
+                              multiple="true" style="width: 1000px;" update="messages"/>  
+                <p:messages id="messages" showDetail="true" showSummary="true" autoUpdate="false"/>
+            </h:form>
+
+            <h:form>
+                <p:commandButton value="Back" 
+                                 action="#{filingCabinetManagerBean.loadFilingCabinetAndShow(filingCabinetManagerBean.filingCabinet.schema.id, testBean.selectedDB)}"> 
+                </p:commandButton>
+            </h:form>
+        </p:panel>
+    </h:body>
+</html>

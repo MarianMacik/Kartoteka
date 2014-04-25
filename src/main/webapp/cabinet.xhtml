@@ -37,6 +37,28 @@
                         </h:column>
                     </h:dataTable>
 
+
+                    <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}" style="vertical-align: top">
+                        <h:column><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}: " style="font-size: 20px;font-weight: bold"/></h:column>
+                        <h:column>
+                            <ul>
+                                <h:dataTable value="#{cabinetCard.files}" var="file">
+                                    <h:column>
+                                        <li><p:commandButton id="downloadLinkFile" value="#{file.getName()}" ajax="false"  
+                                                             icon="ui-icon-arrowthick-1-s">  
+                                                <p:fileDownload value="#{file}" />  
+                                            </p:commandButton>
+                                        </li>
+                                    </h:column>
+                                </h:dataTable>
+                            </ul>     
+                        </h:column>
+                    </h:dataTable>
+
+                    <p:commandButton value="Attach file" 
+                                     icon="ui-icon-document" action="cardupload.xhtml?faces-redirect=true" actionListener="#{fileUploadBean.setActualCard(cabinetCard)}">
+                    </p:commandButton>
+
                     <p:commandButton value="Edit item" 
                                      oncomplete="PF('editDialog').show()" icon="ui-icon-pencil" update=":dialogForEdit" actionListener="#{filingCabinetManagerBean.copyCabinetCardToEdit(cabinetCard)}">
                     </p:commandButton>
@@ -142,7 +164,7 @@
                             </h:dataTable>
                         </ul>     
                     </h:column>
-                    
+
                 </h:dataTable>
                 <p:messages id="validationMessage" />
                 <div style="text-align: center" >

@@ -23,6 +23,8 @@ public class Schema {
     
     private List<SchemaField> fields = new ArrayList<>();
 
+    private String binaryDataFieldName = new String();
+    
     public BasicDBObject schemaToDBObject(){
         BasicDBObject obj = new BasicDBObject();
         obj.put("title", title);
@@ -53,8 +55,14 @@ public class Schema {
     public void setFields(List<SchemaField> fields) {
         this.fields = fields;
     }
-    
-    
+
+    public String getBinaryDataFieldName() {
+        return binaryDataFieldName;
+    }
+
+    public void setBinaryDataFieldName(String binaryDataFieldName) {
+        this.binaryDataFieldName = binaryDataFieldName;
+    }
     
     
 }

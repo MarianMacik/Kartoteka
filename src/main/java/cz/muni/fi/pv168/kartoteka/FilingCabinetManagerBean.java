@@ -9,6 +9,8 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
 import cz.muni.fi.pv168.validator.Validator;
 import cz.muni.fi.pv168.validator.ValidatorType;
 import java.io.Serializable;
@@ -21,6 +23,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import org.bson.types.ObjectId;
 import org.primefaces.context.RequestContext;
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.DefaultStreamedContent;
+import org.primefaces.model.StreamedContent;
 
 /**
  *
@@ -96,7 +101,10 @@ public class FilingCabinetManagerBean implements Serializable {
 
                 }
             }
-            cabinetCards.add(new CabinetCard(cur.getObjectId("_id"), cardData));
+            //now we will load binary files
+            List<StreamedContent> filesInDB = loadBinaryFiles(cur, newFilingCabinet.getSchema().getBinaryDataFieldName(), selectedDB);
+
+            cabinetCards.add(new CabinetCard(cur.getObjectId("_id"), cardData, filesInDB));
 
         }
         newFilingCabinet.setFilingCabinetData(cabinetCards);
@@ -239,7 +247,7 @@ public class FilingCabinetManagerBean implements Serializable {
             Validator validator = schemaField.getValidator();
             boolean noValidationMessagesSoFar = true;
             boolean noRequiredMessageSoFar = true;
-            
+
             for (MyString myString : myStringData) {
                 //first - validation of required constraint
                 if (schemaField.isMandatory() && myString.getString().isEmpty() && noRequiredMessageSoFar) { //if validation is unsuccessful
@@ -269,7 +277,7 @@ public class FilingCabinetManagerBean implements Serializable {
                         validationError = true;
                     }
                 }
-                
+
                 BasicDBObject obj = new BasicDBObject();
                 obj.put("_id", myString.getId());
                 obj.put("value", myString.getString());
@@ -278,18 +286,18 @@ public class FilingCabinetManagerBean implements Serializable {
             update.put(schemaFieldTitle, list);
 
         }
-        
+
         if (validationError) {
             return;
         }
-        
+
         ObjectId cardId = editCabinetCard.getId();
         BasicDBObject match = new BasicDBObject("_id", cardId);
 
         collection.update(match, new BasicDBObject("$set", update));
         //Hide the dialog, because submit was succesful
         RequestContext.getCurrentInstance().execute("editDialog.hide()");
-        
+
         //refresh whole filingCabinet and erase newCabinetCard
         loadFilingCabinetAndShow(filingCabinet.getSchema().getId(), selectedDB);
 
@@ -317,8 +325,42 @@ public class FilingCabinetManagerBean implements Serializable {
             }
         }
     }
-    
-    public void copyCabinetCardToEdit(CabinetCard card){
+
+    public void prepareDownload(FileUploadEvent event) {
+//        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(nameOfCollection);
+//        
+//        BufferedWriter bw = null;
+//        
+//        //filename is user(or selectedDB it is the same)_nameOfCollection.json
+//        String filename = selectedDB + "_" + nameOfCollection + ".json";
+//        
+//        StringBuilder sb = new StringBuilder();
+//        DBCursor cursor = collection.find();
+//        while(cursor.hasNext()){
+//            //currently processed document
+//            BasicDBObject cur = (BasicDBObject) cursor.next();
+//            sb.append(cur.toString());
+//            sb.append(System.lineSeparator());
+//        }
+//        InputStream is = new ByteArrayInputStream(sb.toString().getBytes());
+//        this.fileToExport = new DefaultStreamedContent(is, "text", filename);
+
+//        data.
+        System.out.println(event.getComponent().getAttributes().get("cabinetCard"));
+        System.out.println(event.getComponent().getAttributes().get("index"));
+        System.out.println(event.getComponent().getAttributes().get("selectedDB"));
+        List<MyString> myList = new ArrayList<>();
+        myList.add(new MyString(new ObjectId(), "skuska obrazkov1"));
+        myList.add(new MyString(new ObjectId(), "skuska obrazkov2"));
+
+        MultipleData data = (MultipleData) newCabinetCard.getCardData().get(7);
+        data.setData(myList);
+
+        System.out.println(event.getFile().getFileName());
+
+    }
+
+    public void copyCabinetCardToEdit(CabinetCard card) {
         editCabinetCard = new CabinetCard(card);
     }
 
@@ -360,6 +402,19 @@ public class FilingCabinetManagerBean implements Serializable {
 
     public void setEditCabinetCard(CabinetCard editCabinetCard) {
         this.editCabinetCard = editCabinetCard;
+    }
+
+    private List<StreamedContent> loadBinaryFiles(BasicDBObject cur, String binaryDataFieldName, String selectedDB) {
+        List<StreamedContent> result = new ArrayList<>();
+        BasicDBList files = (BasicDBList) cur.get(binaryDataFieldName);
+        for (Object file : files) {
+            ObjectId fileId = (ObjectId) file;
+            GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
+            GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
+            StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());
+            result.add(fileContent);
+        }
+        return result;
     }
 
 }

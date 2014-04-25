@@ -57,6 +57,8 @@ public class SchemaManagerBean implements Serializable {
     private SchemaField schemaFieldToEdit = new SchemaField();
 
     private boolean schemaNameEditMode;
+    
+    private String newBinaryDataFieldName;
 
     public Schema loadSchema(ObjectId schemaId, String selectedDB) {
         Schema newSchema = new Schema();
@@ -69,6 +71,8 @@ public class SchemaManagerBean implements Serializable {
 
         newSchema.setTitle(object.getString("title"));
 
+        newSchema.setBinaryDataFieldName(object.getString("BinaryDataFieldName"));
+        
         BasicDBList fields = (BasicDBList) object.get("fields");
 
         //If schema has fields, we will load them
@@ -110,7 +114,8 @@ public class SchemaManagerBean implements Serializable {
         if (newSchemaField.getFieldTitle().equals("")) {
             FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be named!", null));
             validationError = true;
-        } else if (fieldNames.contains(newSchemaField.getFieldTitle()) && !actualFields.contains(new AbstractMap.SimpleEntry<>(newSchemaField.getId(), newSchemaField.getFieldTitle()))) {
+        } else if ((fieldNames.contains(newSchemaField.getFieldTitle()) && !actualFields.contains(new AbstractMap.SimpleEntry<>(newSchemaField.getId(), newSchemaField.getFieldTitle())))
+                || newSchemaField.getFieldTitle().equals(schema.getBinaryDataFieldName())) {
             FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be unique!", null));
             validationError = true;
         } else if (newSchemaField.getFieldTitle().contains("$") || newSchemaField.getFieldTitle().contains(".")) {
@@ -387,6 +392,84 @@ public class SchemaManagerBean implements Serializable {
     public void copySchemaFieldToEdit(SchemaField field) {
         schemaFieldToEdit = new SchemaField(field.getId(), field.getFieldTitle(), field.isMandatory(), field.getConstraint(), field.isRepeatable(), field.getValidator());
     }
+    
+    public void copySchemaBinaryDataFieldName(String fieldName){
+        newBinaryDataFieldName = new String(fieldName);
+    }
+    
+    public void setSchemaBinaryDataFieldName(String selectedDB){
+        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        
+        //Match for concrete schema
+        BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
+
+        boolean validationError = false;
+
+        //control if the name of the adding fied is unique
+        List<Entry<ObjectId, String>> actualFields = getSchemaFieldsIdName();
+        List<String> fieldNames = new ArrayList<>();
+
+        for (Entry<ObjectId, String> entry : actualFields) {
+            fieldNames.add(entry.getValue());
+        }
+
+        if (newBinaryDataFieldName.equals("")) {
+            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be named!", null));
+            validationError = true;
+        } else if (fieldNames.contains(newBinaryDataFieldName)) {
+            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be unique!", null));
+            validationError = true;
+        } else if (newBinaryDataFieldName.contains("$") || newBinaryDataFieldName.contains(".")) {
+            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must not contain '.' or '$'!", null));
+            validationError = true;
+        }
+        
+        if (validationError) {
+            return;
+        }
+        
+        BasicDBObject update = new BasicDBObject();
+        update.put("BinaryDataFieldName", newBinaryDataFieldName);
+        
+        //we will update name of the field in schema collection, if it is not present, it is created
+        collection.update(match, new BasicDBObject("$set", update));
+        
+        //we will also insert blank fields to the documents in filingCabinet, if filingCabinet has any documents
+        if(filingCabinet.count() != 0){
+            //newly added field name
+            if(!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() == null){
+                filingCabinet.update(new BasicDBObject(), new BasicDBObject("$set", new BasicDBObject(newBinaryDataFieldName, new BasicDBList())), false, true);
+            }
+            
+            //if new name is different and the field was set previously -> old name is not null -> we have to rename it
+            if(!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() != null){
+                filingCabinet.update(new BasicDBObject(), new BasicDBObject("$rename", new BasicDBObject(this.schema.getBinaryDataFieldName(), newBinaryDataFieldName)), false, true);
+            }
+        }
+        
+        //actualisation of table in browser
+        this.schema = loadSchema(schema.getId(), selectedDB);
+
+        //Hide the dialog, because submit was succesful
+        RequestContext.getCurrentInstance().execute("editBinaryDataFieldNameDialog.hide()");
+    }
+    
+    public void removeSchemaBinaryDataField(String selectedDB){
+        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+        //Match for concrete schema
+        BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
+
+        //We will also delete whole key BinaryDataFieldName - because it is not set
+        collection.update(match, new BasicDBObject("$unset", new BasicDBObject("BinaryDataFieldName", 1)));
+
+        //we will also delete all values that are stored under this key in appropriate collection
+        collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        collection.update(new BasicDBObject(), new BasicDBObject("$unset", new BasicDBObject(this.schema.getBinaryDataFieldName(), 1)), false, true);
+
+        //actualisation of table in browser
+        this.schema = loadSchema(schema.getId(), selectedDB);
+    }
 
     private boolean checkConstraintValidation(String selectedDB) {
         //first we will obtain DBCursor for records in filingCabinet
@@ -553,6 +636,14 @@ public class SchemaManagerBean implements Serializable {
         this.schemaNameEditMode = schemaNameEditMode;
     }
 
+    public String getNewBinaryDataFieldName() {
+        return newBinaryDataFieldName;
+    }
+
+    public void setNewBinaryDataFieldName(String newBinaryDataFieldName) {
+        this.newBinaryDataFieldName = newBinaryDataFieldName;
+    }
+    
     private boolean invalidSchemaName(String title, List<Map.Entry<ObjectId, String>> schemas, boolean editMode) {
 
         List<String> schemaNames = new ArrayList<>();

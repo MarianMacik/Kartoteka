@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.bson.types.ObjectId;
+import org.primefaces.model.StreamedContent;
 
 /**
  *
@@ -22,12 +23,15 @@ public class CabinetCard {
     
     private List<Data> cardData = new ArrayList<>();
 
+    private List<StreamedContent> files = new ArrayList<>();
+    
     public CabinetCard() {
     }
 
-    public CabinetCard(ObjectId id, List<Data> data) {
+    public CabinetCard(ObjectId id, List<Data> data, List<StreamedContent> files) {
         this.id = id;
         this.cardData = data;
+        this.files = files;
     }
     //copy constructor
     public CabinetCard(CabinetCard copy){
@@ -83,6 +87,14 @@ public class CabinetCard {
         hash = 89 * hash + Objects.hashCode(this.id);
         hash = 89 * hash + Objects.hashCode(this.cardData);
         return hash;
+    }
+
+    public List<StreamedContent> getFiles() {
+        return files;
+    }
+
+    public void setFiles(List<StreamedContent> files) {
+        this.files = files;
     }
 
     @Override

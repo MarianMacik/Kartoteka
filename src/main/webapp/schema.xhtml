@@ -48,7 +48,7 @@ and open the template in the editor.
                                      actionListener="#{schemaManagerBean.removeSchemaField(coll, testBean.selectedDB)}" update="@all">
                         <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
                     </p:commandButton>
-                    
+
                     <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
                         <div style="text-align: center" >
                             <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
@@ -68,6 +68,32 @@ and open the template in the editor.
                 <p:commandButton  oncomplete="PF('addSchemaFieldDialog').show()" value="Add Schema Field" icon="ui-icon-plusthick" />  
             </h:form>
         </h:form>
+
+        <h:form id="binaryFieldForm">
+            <p:outputLabel value="Schema Field for files name:  "/>
+            <h:outputText value="#{schemaManagerBean.schema.binaryDataFieldName}" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
+            <h:outputText value="Currently not set" rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>
+
+            <h:form>
+                <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Edit" icon="ui-icon-pencil" 
+                                  update=":dialogForSchemaFieldFile"
+                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}"/>  
+
+
+                <p:commandButton value="Delete" 
+                                 actionListener="#{schemaManagerBean.removeSchemaBinaryDataField(testBean.selectedDB)}" update="@all">
+                    <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
+                </p:commandButton>
+
+                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
+                    <div style="text-align: center" >
+                        <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                    </div>
+                </p:confirmDialog>  
+            </h:form>
+        </h:form>
+
 
         <h:form>
             <p:commandLink value="Back to home" action="index.xhtml?faces-redirect=true" ajax="false"/>
@@ -131,6 +157,19 @@ and open the template in the editor.
                 <div align="center">
                     <p:commandButton value="Edit SchemaField" 
                                      action="#{schemaManagerBean.editSchemaField(testBean.selectedDB)}" update="@form :tableForm" />
+                </div>
+            </h:form>
+        </p:dialog>
+
+        <p:dialog header="Edit Schema Field for files" widgetVar="editBinaryDataFieldNameDialog" id="dialogForSchemaFieldFile" width="320">  
+            <h:form>
+                <div align="center">
+                    <p:messages id="schemaFieldTitleMessageAdd" autoUpdate="false"/>
+                    <h:panelGrid columns="2">
+                        <p:outputLabel for="schemaFieldNameInput" value="Field name: "/>
+                        <p:inputText id="schemaFieldNameInput" size="10" value="#{schemaManagerBean.newBinaryDataFieldName}"/>
+                    </h:panelGrid>
+                    <p:commandButton value="Finish editing" actionListener="#{schemaManagerBean.setSchemaBinaryDataFieldName(testBean.selectedDB)}" update="@form :binaryFieldForm"/>
                 </div>
             </h:form>
         </p:dialog>
