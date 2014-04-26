@@ -295,8 +295,8 @@ public class SchemaManagerBean implements Serializable {
         if (newSchemaToAdd.getTitle().equals("")) {
             FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema must be named!", null));
             return;
-        } else if (newSchemaToAdd.getTitle().contains("$") || newSchemaToAdd.getTitle().startsWith("system.")) {
-            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must not contain $ or starts with 'system.' prefix!", null));
+        } else if (newSchemaToAdd.getTitle().contains("$") || newSchemaToAdd.getTitle().startsWith("system.") || newSchemaToAdd.getTitle().equals("fs.files") || newSchemaToAdd.getTitle().equals("fs.chunks")) {
+            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must not contain $ or starts with 'system.' prefix or be 'fs.files' or 'fs.chunks'!", null));
             return;
             //schema must be unique
         } else if (schemaNames.contains(newSchemaToAdd.getTitle())) {
@@ -679,8 +679,8 @@ public class SchemaManagerBean implements Serializable {
         if (title.equals("")) {
             FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema must be named!", null));
             return true;
-        } else if (title.contains("$") || title.startsWith("system.")) {
-            FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must not contain $ or starts with 'system.' prefix!", null));
+        } else if (title.contains("$") || title.startsWith("system.") || title.equals("fs.files") || title.equals("fs.chunks")) {
+            FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must not contain $ or starts with 'system.' prefix or be 'fs.files' or 'fs.chunks'!", null));
             return true;
             //schema must be unique
         } else if (schemaNames.contains(title)) {
