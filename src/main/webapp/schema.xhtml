@@ -70,18 +70,26 @@ and open the template in the editor.
         </h:form>
 
         <h:form id="binaryFieldForm">
-            <p:outputLabel value="Schema Field for files name:  "/>
+            <p:outputLabel value="Schema Field for files name:  " rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
             <h:outputText value="#{schemaManagerBean.schema.binaryDataFieldName}" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
-            <h:outputText value="Currently not set" rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>
+            <h:outputText value="Schema Field for files is not set. To set it, press the Add button." rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>
 
             <h:form>
+                
+                <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Add" icon="ui-icon-pencil" 
+                                  update=":dialogForSchemaFieldFile"
+                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}" 
+                                  rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>  
+                
                 <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Edit" icon="ui-icon-pencil" 
                                   update=":dialogForSchemaFieldFile"
-                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}"/>  
+                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}"
+                                  rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>  
 
 
                 <p:commandButton value="Delete" 
-                                 actionListener="#{schemaManagerBean.removeSchemaBinaryDataField(testBean.selectedDB)}" update="@all">
+                                 actionListener="#{schemaManagerBean.removeSchemaBinaryDataField(testBean.selectedDB)}" update="@all"
+                                 rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}">
                     <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
                 </p:commandButton>
 

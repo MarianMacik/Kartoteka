@@ -14,6 +14,13 @@
         <div>Cabinet</div>
         <h2><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.title}"/></h2>
 
+        
+        <h:form id="backButton">
+            <p:commandButton value="Back to list of filing cabinets" 
+                             action="index.xhtml?faces-redirect=true" icon="ui-icon-arrowreturnthick-1-w"> 
+            </p:commandButton>
+        </h:form>
+        <br/>
         <h:form id="table">
             <p:commandButton id="downloadLink" value="Export data" ajax="false"  actionListener="#{dataExporterBean.prepareDownload(filingCabinetManagerBean.filingCabinet.schema.title, testBean.selectedDB)}"  
                              icon="ui-icon-arrowthick-1-s">  
@@ -44,9 +51,9 @@
                             <ul>
                                 <h:dataTable value="#{cabinetCard.files}" var="file">
                                     <h:column>
-                                        <li><p:commandButton id="downloadLinkFile" value="#{file.getName()}" ajax="false"  
+                                        <li><p:commandButton id="downloadLinkFile" value="#{file.value.getName()}" ajax="false"  
                                                              icon="ui-icon-arrowthick-1-s">  
-                                                <p:fileDownload value="#{file}" />  
+                                                <p:fileDownload value="#{file.value}" />  
                                             </p:commandButton>
                                         </li>
                                     </h:column>
@@ -55,8 +62,9 @@
                         </h:column>
                     </h:dataTable>
 
-                    <p:commandButton value="Attach file" 
-                                     icon="ui-icon-document" action="cardupload.xhtml?faces-redirect=true" actionListener="#{fileUploadBean.setActualCard(cabinetCard)}">
+                    <p:commandButton value="Attach/Remove files" 
+                                     icon="ui-icon-document" action="cardupload.xhtml?faces-redirect=true" actionListener="#{fileUploadBean.setActualCard(cabinetCard)}"
+                                     rendered="#{not empty filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}">
                     </p:commandButton>
 
                     <p:commandButton value="Edit item" 
@@ -64,7 +72,7 @@
                     </p:commandButton>
 
                     <p:commandButton value="Delete item" 
-                                     actionListener="#{filingCabinetManagerBean.removeCabinetCard(cabinetCard, testBean.selectedDB)}" update="@all" icon="ui-icon-closethick">
+                                     actionListener="#{filingCabinetManagerBean.removeCabinetCard(cabinetCard, testBean.selectedDB)}" update="@form" icon="ui-icon-closethick">
                         <p:confirm header="Confirmation" message="Do you really want to delete this item?" icon="ui-icon-alert" />  
                     </p:commandButton>
 
@@ -81,6 +89,7 @@
         <h:form>
             <p:commandButton  oncomplete="PF('addDialog').show()" value="Add" icon="ui-icon-plusthick" />  
         </h:form>
+        
 
         <p:dialog header="Add data" widgetVar="addDialog" height='650'>  
             <h:form id="addForm">

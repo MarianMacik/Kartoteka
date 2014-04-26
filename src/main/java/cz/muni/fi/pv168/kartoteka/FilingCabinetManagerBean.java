@@ -15,7 +15,11 @@ import cz.muni.fi.pv168.validator.Validator;
 import cz.muni.fi.pv168.validator.ValidatorType;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -101,8 +105,8 @@ public class FilingCabinetManagerBean implements Serializable {
 
                 }
             }
-            //now we will load binary files
-            List<StreamedContent> filesInDB = loadBinaryFiles(cur, newFilingCabinet.getSchema().getBinaryDataFieldName(), selectedDB);
+            //now we will load binary files with theri IDs - IDs are for deletion
+            List<Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(cur, newFilingCabinet.getSchema().getBinaryDataFieldName(), selectedDB);
 
             cabinetCards.add(new CabinetCard(cur.getObjectId("_id"), cardData, filesInDB));
 
@@ -309,6 +313,9 @@ public class FilingCabinetManagerBean implements Serializable {
 
         BasicDBObject match = new BasicDBObject("_id", card.getId());
 
+        //First, we have to remove files from GridFS if there are any
+        BasicDBObject toRemove = (BasicDBObject) collection.findOne(match);
+        removeFilesInDocument(toRemove, filingCabinet.getSchema().getBinaryDataFieldName(), selectedDB);
         collection.remove(match);
 
         loadFilingCabinetAndShow(filingCabinet.getSchema().getId(), selectedDB);
@@ -324,40 +331,6 @@ public class FilingCabinetManagerBean implements Serializable {
                 this.newCabinetCard.addSimpleData();
             }
         }
-    }
-
-    public void prepareDownload(FileUploadEvent event) {
-//        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(nameOfCollection);
-//        
-//        BufferedWriter bw = null;
-//        
-//        //filename is user(or selectedDB it is the same)_nameOfCollection.json
-//        String filename = selectedDB + "_" + nameOfCollection + ".json";
-//        
-//        StringBuilder sb = new StringBuilder();
-//        DBCursor cursor = collection.find();
-//        while(cursor.hasNext()){
-//            //currently processed document
-//            BasicDBObject cur = (BasicDBObject) cursor.next();
-//            sb.append(cur.toString());
-//            sb.append(System.lineSeparator());
-//        }
-//        InputStream is = new ByteArrayInputStream(sb.toString().getBytes());
-//        this.fileToExport = new DefaultStreamedContent(is, "text", filename);
-
-//        data.
-        System.out.println(event.getComponent().getAttributes().get("cabinetCard"));
-        System.out.println(event.getComponent().getAttributes().get("index"));
-        System.out.println(event.getComponent().getAttributes().get("selectedDB"));
-        List<MyString> myList = new ArrayList<>();
-        myList.add(new MyString(new ObjectId(), "skuska obrazkov1"));
-        myList.add(new MyString(new ObjectId(), "skuska obrazkov2"));
-
-        MultipleData data = (MultipleData) newCabinetCard.getCardData().get(7);
-        data.setData(myList);
-
-        System.out.println(event.getFile().getFileName());
-
     }
 
     public void copyCabinetCardToEdit(CabinetCard card) {
@@ -404,17 +377,45 @@ public class FilingCabinetManagerBean implements Serializable {
         this.editCabinetCard = editCabinetCard;
     }
 
-    private List<StreamedContent> loadBinaryFiles(BasicDBObject cur, String binaryDataFieldName, String selectedDB) {
-        List<StreamedContent> result = new ArrayList<>();
+    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String binaryDataFieldName, String selectedDB) {
+        Map<ObjectId, StreamedContent> map = new HashMap<>();
         BasicDBList files = (BasicDBList) cur.get(binaryDataFieldName);
-        for (Object file : files) {
-            ObjectId fileId = (ObjectId) file;
-            GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
-            GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
-            StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());
-            result.add(fileContent);
+        //if file field is defined
+        if (files != null) {
+            for (Object file : files) {
+                ObjectId fileId = (ObjectId) file;
+                GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
+                GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
+                StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());
+                map.put(fileId, fileContent);
+            }
         }
+        List<Entry<ObjectId, StreamedContent>> result = new ArrayList<>(map.entrySet());
+        //now we will sort it by names of the files
+        result.sort(new Comparator<Entry<ObjectId, StreamedContent>>() {
+            @Override
+            public int compare(Entry<ObjectId, StreamedContent> entry1, Entry<ObjectId, StreamedContent> entry2) {
+                String str1 = entry1.getValue().getName().toLowerCase();
+                String str2 = entry2.getValue().getName().toLowerCase();
+
+                return str1.compareTo(str2);
+            }
+        });
         return result;
+    }
+    
+    private void removeFilesInDocument(BasicDBObject document, String binaryDataFieldName, String selectedDB) {
+        BasicDBList files = (BasicDBList) document.get(binaryDataFieldName);
+        //if binaryDataField is defined
+        if(files != null){
+            //GridFS DB with files
+            GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
+            
+            for (Object file : files) {
+                ObjectId fileId = (ObjectId) file;
+                binaryDB.remove(fileId);
+            }
+        }
     }
 
 }

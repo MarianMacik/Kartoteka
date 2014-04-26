@@ -11,6 +11,7 @@ import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import com.mongodb.gridfs.GridFS;
 import cz.muni.fi.pv168.validator.LetterValidator;
 import cz.muni.fi.pv168.validator.NumberAndLetterValidator;
 import cz.muni.fi.pv168.validator.NumberValidator;
@@ -57,7 +58,7 @@ public class SchemaManagerBean implements Serializable {
     private SchemaField schemaFieldToEdit = new SchemaField();
 
     private boolean schemaNameEditMode;
-    
+
     private String newBinaryDataFieldName;
 
     public Schema loadSchema(ObjectId schemaId, String selectedDB) {
@@ -72,7 +73,7 @@ public class SchemaManagerBean implements Serializable {
         newSchema.setTitle(object.getString("title"));
 
         newSchema.setBinaryDataFieldName(object.getString("BinaryDataFieldName"));
-        
+
         BasicDBList fields = (BasicDBList) object.get("fields");
 
         //If schema has fields, we will load them
@@ -97,7 +98,7 @@ public class SchemaManagerBean implements Serializable {
     public String addSchemaField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
-        
+
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
 
@@ -146,12 +147,12 @@ public class SchemaManagerBean implements Serializable {
         BasicDBObject update = new BasicDBObject("fields", schemaFieldToAdd);
 
         collection.update(match, new BasicDBObject("$push", update));
-        
+
         //we will also insert blank fields to the documents in filingCabinet, if filingCabinet has any documents
-        if(filingCabinet.count() != 0){
+        if (filingCabinet.count() != 0) {
             filingCabinet.update(new BasicDBObject(), new BasicDBObject("$set", new BasicDBObject(newSchemaField.getFieldTitle(), new BasicDBList())), false, true);
         }
-        
+
         //actualisation of table in browser
         this.schema = loadSchema(schema.getId(), selectedDB);
 
@@ -324,9 +325,24 @@ public class SchemaManagerBean implements Serializable {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         BasicDBObject match = new BasicDBObject("_id", schemaToRemove.getKey());
 
+        DBCollection cabinetToDelete = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schemaToRemove.getValue());
+
+        //First we have to delete files from GridFS
+        //if field for binary data is set, we have to delete files from GridFS
+        //First we have to load schema to find if binaryDataField is set
+        Schema schema = loadSchema(schemaToRemove.getKey(), selectedDB);
+        String binaryDataFieldName = schema.getBinaryDataFieldName();
+        if (binaryDataFieldName != null) {
+            //all documents in cabinet
+            DBCursor cursor = cabinetToDelete.find();
+            while (cursor.hasNext()) {
+                BasicDBObject document = (BasicDBObject) cursor.next();
+                removeFilesInDocument(document, binaryDataFieldName, selectedDB);
+            }
+        }
         //now we will delete whole filing cabinet assigned to this schema
         //if there is cabinet, we will delete it
-        DBCollection cabinetToDelete = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schemaToRemove.getValue());
+
         if (cabinetToDelete != null) {
             cabinetToDelete.drop();
         }
@@ -392,15 +408,15 @@ public class SchemaManagerBean implements Serializable {
     public void copySchemaFieldToEdit(SchemaField field) {
         schemaFieldToEdit = new SchemaField(field.getId(), field.getFieldTitle(), field.isMandatory(), field.getConstraint(), field.isRepeatable(), field.getValidator());
     }
-    
-    public void copySchemaBinaryDataFieldName(String fieldName){
+
+    public void copySchemaBinaryDataFieldName(String fieldName) {
         newBinaryDataFieldName = new String(fieldName);
     }
-    
-    public void setSchemaBinaryDataFieldName(String selectedDB){
+
+    public void setSchemaBinaryDataFieldName(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
-        
+
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
 
@@ -424,38 +440,38 @@ public class SchemaManagerBean implements Serializable {
             FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must not contain '.' or '$'!", null));
             validationError = true;
         }
-        
+
         if (validationError) {
             return;
         }
-        
+
         BasicDBObject update = new BasicDBObject();
         update.put("BinaryDataFieldName", newBinaryDataFieldName);
-        
+
         //we will update name of the field in schema collection, if it is not present, it is created
         collection.update(match, new BasicDBObject("$set", update));
-        
+
         //we will also insert blank fields to the documents in filingCabinet, if filingCabinet has any documents
-        if(filingCabinet.count() != 0){
+        if (filingCabinet.count() != 0) {
             //newly added field name
-            if(!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() == null){
+            if (!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() == null) {
                 filingCabinet.update(new BasicDBObject(), new BasicDBObject("$set", new BasicDBObject(newBinaryDataFieldName, new BasicDBList())), false, true);
             }
-            
+
             //if new name is different and the field was set previously -> old name is not null -> we have to rename it
-            if(!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() != null){
+            if (!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() != null) {
                 filingCabinet.update(new BasicDBObject(), new BasicDBObject("$rename", new BasicDBObject(this.schema.getBinaryDataFieldName(), newBinaryDataFieldName)), false, true);
             }
         }
-        
+
         //actualisation of table in browser
         this.schema = loadSchema(schema.getId(), selectedDB);
 
         //Hide the dialog, because submit was succesful
         RequestContext.getCurrentInstance().execute("editBinaryDataFieldNameDialog.hide()");
     }
-    
-    public void removeSchemaBinaryDataField(String selectedDB){
+
+    public void removeSchemaBinaryDataField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
@@ -464,7 +480,15 @@ public class SchemaManagerBean implements Serializable {
         collection.update(match, new BasicDBObject("$unset", new BasicDBObject("BinaryDataFieldName", 1)));
 
         //we will also delete all values that are stored under this key in appropriate collection
+        //But first, we have to delete files in GridFS and after that we can delete links (ObjectIds) to them
         collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        //all documents in this collection
+        DBCursor cursor = collection.find();
+        while (cursor.hasNext()) {
+            BasicDBObject document = (BasicDBObject) cursor.next();
+            removeFilesInDocument(document, this.schema.getBinaryDataFieldName(), selectedDB);
+        }
+        //now we can remove field with links (ObjectIds) from documents
         collection.update(new BasicDBObject(), new BasicDBObject("$unset", new BasicDBObject(this.schema.getBinaryDataFieldName(), 1)), false, true);
 
         //actualisation of table in browser
@@ -643,7 +667,7 @@ public class SchemaManagerBean implements Serializable {
     public void setNewBinaryDataFieldName(String newBinaryDataFieldName) {
         this.newBinaryDataFieldName = newBinaryDataFieldName;
     }
-    
+
     private boolean invalidSchemaName(String title, List<Map.Entry<ObjectId, String>> schemas, boolean editMode) {
 
         List<String> schemaNames = new ArrayList<>();
@@ -672,6 +696,20 @@ public class SchemaManagerBean implements Serializable {
         }
 
         return false;
+    }
+
+    public void removeFilesInDocument(BasicDBObject document, String binaryDataFieldName, String selectedDB) {
+        BasicDBList files = (BasicDBList) document.get(binaryDataFieldName);
+        //if binaryDataField is defined
+        if (files != null) {
+            //GridFS DB with files
+            GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
+
+            for (Object file : files) {
+                ObjectId fileId = (ObjectId) file;
+                binaryDB.remove(fileId);
+            }
+        }
     }
 
 }

@@ -9,6 +9,7 @@ package cz.muni.fi.pv168.kartoteka;
 import com.mongodb.BasicDBObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import org.bson.types.ObjectId;
 import org.primefaces.model.StreamedContent;
@@ -23,12 +24,12 @@ public class CabinetCard {
     
     private List<Data> cardData = new ArrayList<>();
 
-    private List<StreamedContent> files = new ArrayList<>();
+    private List<Entry<ObjectId,StreamedContent>> files = new ArrayList<>();
     
     public CabinetCard() {
     }
 
-    public CabinetCard(ObjectId id, List<Data> data, List<StreamedContent> files) {
+    public CabinetCard(ObjectId id, List<Data> data, List<Entry<ObjectId,StreamedContent>> files) {
         this.id = id;
         this.cardData = data;
         this.files = files;
@@ -89,11 +90,11 @@ public class CabinetCard {
         return hash;
     }
 
-    public List<StreamedContent> getFiles() {
+    public List<Entry<ObjectId,StreamedContent>> getFiles() {
         return files;
     }
 
-    public void setFiles(List<StreamedContent> files) {
+    public void setFiles(List<Entry<ObjectId,StreamedContent>> files) {
         this.files = files;
     }
 
