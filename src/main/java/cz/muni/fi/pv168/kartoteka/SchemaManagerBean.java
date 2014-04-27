@@ -92,6 +92,8 @@ public class SchemaManagerBean implements Serializable {
 
     public String setSchemaAndShow(ObjectId id, String selectedDB) {
         this.schema = loadSchema(id, selectedDB);
+        //if user forgot to finish editing - on next load it is not in edit mode
+        this.schemaNameEditMode = false;
         return "schema.xhtml?faces-redirect=true";
     }
 
@@ -301,6 +303,9 @@ public class SchemaManagerBean implements Serializable {
             //schema must be unique
         } else if (schemaNames.contains(newSchemaToAdd.getTitle())) {
             FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
+            return;
+        } else if(newSchemaToAdd.getTitle().equals("Schemas")){
+            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name cannot be 'Schemas'!", null));
             return;
         }
 
@@ -693,6 +698,9 @@ public class SchemaManagerBean implements Serializable {
                 FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
                 return true;
             }
+        } else if(title.equals("Schemas")){
+            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name cannot be 'Schemas'!", null));
+            return true;
         }
 
         return false;

@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head>
+        <title>TODO supply a title</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    </h:head>
+    <h:body>
+        <center style="margin: 15px"><h2>Please select the way you want to log in</h2>
+
+            <div style="margin:200px "> 
+
+                <h:form>
+                    <h:panelGroup rendered="#{empty authenticationBean.profile}" id="socialButtons" >
+                        <h:commandButton id="facebook" action="#{authenticationBean.socialConnect}" image="resources/images/facebook-icon.png">
+                            <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="facebook" />
+                        </h:commandButton>
+                        <br/>
+                        <p:commandLink id="google" action="#{authenticationBean.socialConnect}" >
+                            <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="google" />
+                            <p:graphicImage library="images" name="google-icon.png"/>
+                        </p:commandLink>
+                    </h:panelGroup>
+                </h:form>
+            </div> 
+        </center>
+
+    </h:body>
+</html>
