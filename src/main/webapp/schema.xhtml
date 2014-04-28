@@ -10,103 +10,144 @@ and open the template in the editor.
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>TODO supply a title</title>
+        <title>Filing cabinet as SaaS</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet name="style.css"/>
     </h:head>
-    <body>
-        <div>Schema</div>
+    <h:body>
 
-        <h:form>
-            <h2><h:outputText value="#{schemaManagerBean.schema.title}" rendered="#{not schemaManagerBean.schemaNameEditMode}"/></h2>
-            <h2><h:inputText id="schemaNameInput" value="#{schemaManagerBean.schema.title}" rendered="#{schemaManagerBean.schemaNameEditMode}"/></h2>
-            <p:messages id="schemaNameErrorMessage"/>
-            <p:commandButton value="Edit schema name" 
-                             action="#{schemaManagerBean.setSchemaNameEditMode(true)}" update="@all" rendered="#{not schemaManagerBean.schemaNameEditMode}" />
-            <p:commandButton value="Finish editing" 
-                             action="#{schemaManagerBean.updateSchemaName(testBean.schemas, testBean.selectedDB)}" update="@form" rendered="#{schemaManagerBean.schemaNameEditMode}"
-                             actionListener="#{testBean.loadUserSchemas()}"/>
-        </h:form>
+        <p:layout fullPage="true" >
 
-        <h3>#{schemaManagerBean.schema.id}</h3>
-        <h:form id="tableForm">
-            <p:dataTable id="table" value="#{schemaManagerBean.schema.fields}" var="coll">
-
-                <p:column headerText="Title of field" >    				
-                    <h:outputText value="#{coll.fieldTitle}"/>
-                </p:column>
-                <p:column headerText="Mandatory">
-                    <h:outputText value="#{coll.mandatory}"/>
-                </p:column>
-                <p:column headerText="Constraint">
-                    <h:outputText value="#{coll.constraint}"/>
-                </p:column>
-                <p:column headerText="Repeatable">
-                    <h:outputText value="#{coll.repeatable}"/>
-                </p:column>
-                <p:column headerText="Erase">
-                    <p:commandButton value="Delete" 
-                                     actionListener="#{schemaManagerBean.removeSchemaField(coll, testBean.selectedDB)}" update="@all">
-                        <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
-                    </p:commandButton>
-
-                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
-                        <div style="text-align: center" >
-                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
-                        </div>
-                    </p:confirmDialog>  
-                </p:column>
-                <p:column headerText="Edit">
-                    <p:commandButton value="Edit" 
-                                     oncomplete="PF('editSchemaFieldDialog').show()"
-                                     icon="ui-icon-pencil" update=":dialogForSchemaFieldEdit" actionListener="#{schemaManagerBean.copySchemaFieldToEdit(coll)}">
-                    </p:commandButton>
-                </p:column>
-            </p:dataTable>
-
-            <h:form>
-                <p:commandButton  oncomplete="PF('addSchemaFieldDialog').show()" value="Add Schema Field" icon="ui-icon-plusthick" />  
-            </h:form>
-        </h:form>
-
-        <h:form id="binaryFieldForm">
-            <p:outputLabel value="Schema Field for files name:  " rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
-            <h:outputText value="#{schemaManagerBean.schema.binaryDataFieldName}" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
-            <h:outputText value="Schema Field for files is not set. To set it, press the Add button." rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>
-
-            <h:form>
-                
-                <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Add" icon="ui-icon-pencil" 
-                                  update=":dialogForSchemaFieldFile"
-                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}" 
-                                  rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>  
-                
-                <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Edit" icon="ui-icon-pencil" 
-                                  update=":dialogForSchemaFieldFile"
-                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}"
-                                  rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>  
+            <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false" >
+                <f:view locale="#{language.localeCode}">
+                    <h:form styleClass="langBar">
+                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                            <p:graphicImage library="images" name="en.png" />
+                        </p:commandLink>
+                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                            <p:graphicImage library="images" name="sk.png"/>
+                        </p:commandLink>
+                    </h:form>
+                </f:view>
+                <center>
+                    <h1><h:outputText value="Filing cabinet as SaaS" styleClass="appTitle"/></h1>
+                </center>
+            </p:layoutUnit>
 
 
-                <p:commandButton value="Delete" 
-                                 actionListener="#{schemaManagerBean.removeSchemaBinaryDataField(testBean.selectedDB)}" update="@all"
-                                 rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}">
-                    <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
-                </p:commandButton>
 
-                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
-                    <div style="text-align: center" >
-                        <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
-                    </div>
-                </p:confirmDialog>  
-            </h:form>
-        </h:form>
+            <p:layoutUnit position="west" size="250" collapsible="true">
+                <h:form>
+                    <center>
+                    <h:outputText value="#{authenticationBean.profile.firstName} #{authenticationBean.profile.lastName}"
+                                  styleClass="header"/>
+                    
+                    </center>
+                    <center>
+                    <h:outputText value="(#{authenticationBean.profile.email})"
+                                  styleClass="header"/>
+                    </center>
+                    <p:menu styleClass="leftMenu">
+                        <p:menuitem value="Filing cabinet list" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
+                        <p:menuitem value="Logout" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
+                    </p:menu>
+                </h:form>
+            </p:layoutUnit>
+            <p:layoutUnit position="center" style="padding: 0px !important; border: none !important">
+                <p:layout>
+                    <p:layoutUnit position="north" styleClass="secondaryPanel" size="80">
+                        <h:form>
+                            <h:outputText value="#{schemaManagerBean.schema.title}" rendered="#{not schemaManagerBean.schemaNameEditMode}" styleClass="schemaTitle" style="margin-right: 10px"/>
+                            <h:inputText id="schemaNameInput" value="#{schemaManagerBean.schema.title}" rendered="#{schemaManagerBean.schemaNameEditMode}" styleClass="schemaTitle"/>
+                            <p:commandButton value="Edit schema name" 
+                                             action="#{schemaManagerBean.setSchemaNameEditMode(true)}" update="@all" rendered="#{not schemaManagerBean.schemaNameEditMode}"/>
+                            <p:commandButton value="Finish editing" 
+                                             action="#{schemaManagerBean.updateSchemaName(mainManagerBean.schemas, mainManagerBean.selectedDB)}" update="@form" rendered="#{schemaManagerBean.schemaNameEditMode}"
+                                             actionListener="#{mainManagerBean.loadUserSchemas()}"/>
+                            <p:messages id="schemaNameErrorMessage"/>
+                        </h:form>
+                    </p:layoutUnit>
+
+                    <p:layoutUnit position="center" style="padding: 0px !important; border: none !important;" size="80">
+                    <h:form id="tableForm">
+                        <p:dataTable id="table" value="#{schemaManagerBean.schema.fields}" var="coll">
+
+                            <p:column headerText="Title of field" >    				
+                                <h:outputText value="#{coll.fieldTitle}"/>
+                            </p:column>
+                            <p:column headerText="Mandatory">
+                                <h:outputText value="#{coll.mandatory}"/>
+                            </p:column>
+                            <p:column headerText="Constraint">
+                                <h:outputText value="#{coll.constraint}"/>
+                            </p:column>
+                            <p:column headerText="Repeatable">
+                                <h:outputText value="#{coll.repeatable}"/>
+                            </p:column>
+                            <p:column headerText="Erase">
+                                <p:commandButton value="Delete" 
+                                                 actionListener="#{schemaManagerBean.removeSchemaField(coll, mainManagerBean.selectedDB)}" update="@all">
+                                    <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
+                                </p:commandButton>
+
+                                <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
+                                    <div style="text-align: center" >
+                                        <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                                        <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                                    </div>
+                                </p:confirmDialog>  
+                            </p:column>
+                            <p:column headerText="Edit">
+                                <p:commandButton value="Edit" 
+                                                 oncomplete="PF('editSchemaFieldDialog').show()"
+                                                 icon="ui-icon-pencil" update=":dialogForSchemaFieldEdit" actionListener="#{schemaManagerBean.copySchemaFieldToEdit(coll)}">
+                                </p:commandButton>
+                            </p:column>
+                        </p:dataTable>
+
+                        <h:form>
+                            <p:commandButton  oncomplete="PF('addSchemaFieldDialog').show()" value="Add Schema Field" icon="ui-icon-plusthick" style="margin-bottom: 15px; margin-top: 15px"/>  
+                        </h:form>
+                    </h:form>
+
+                    <h:form id="binaryFieldForm">
+                        <p:outputLabel value="Schema Field for files name:  " rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
+                        <h:outputText value="#{schemaManagerBean.schema.binaryDataFieldName}" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
+                        <h:outputText value="Schema Field for files is not set. To set it, press the Add button." rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>
+
+                        <h:form>
+
+                            <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Add" icon="ui-icon-pencil" 
+                                              update=":dialogForSchemaFieldFile"
+                                              actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}" 
+                                              rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>  
+
+                            <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="Edit" icon="ui-icon-pencil" 
+                                              update=":dialogForSchemaFieldFile"
+                                              actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}"
+                                              rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>  
 
 
-        <h:form>
-            <p:commandLink value="Back to home" action="index.xhtml?faces-redirect=true" ajax="false"/>
-        </h:form>
+                            <p:commandButton value="Delete" 
+                                             actionListener="#{schemaManagerBean.removeSchemaBinaryDataField(mainManagerBean.selectedDB)}" update="@all"
+                                             rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}">
+                                <p:confirm header="Confirmation" message="Do you really want to delete this field? Data associated with it will be deleted." icon="ui-icon-alert" />  
+                            </p:commandButton>
 
+                            <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
+                                <div style="text-align: center" >
+                                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                                </div>
+                            </p:confirmDialog>  
+                        </h:form>
+                    </h:form>
+                    </p:layoutUnit>
+                </p:layout>
+
+            </p:layoutUnit>
+
+        </p:layout>
         <p:dialog header="Add Schema Field" widgetVar="addSchemaFieldDialog" id="dialogForSchemaFieldAdd" width="450">  
             <h:form>
                 <div align="center">
@@ -133,7 +174,7 @@ and open the template in the editor.
 
                 <div align="center">
                     <p:commandButton value="Add SchemaField" 
-                                     action="#{schemaManagerBean.addSchemaField(testBean.selectedDB)}" update="@form :tableForm" />
+                                     action="#{schemaManagerBean.addSchemaField(mainManagerBean.selectedDB)}" update="@form :tableForm" />
                 </div>
             </h:form>
         </p:dialog>
@@ -164,7 +205,7 @@ and open the template in the editor.
 
                 <div align="center">
                     <p:commandButton value="Edit SchemaField" 
-                                     action="#{schemaManagerBean.editSchemaField(testBean.selectedDB)}" update="@form :tableForm" />
+                                     action="#{schemaManagerBean.editSchemaField(mainManagerBean.selectedDB)}" update="@form :tableForm" />
                 </div>
             </h:form>
         </p:dialog>
@@ -177,9 +218,9 @@ and open the template in the editor.
                         <p:outputLabel for="schemaFieldNameInput" value="Field name: "/>
                         <p:inputText id="schemaFieldNameInput" size="10" value="#{schemaManagerBean.newBinaryDataFieldName}"/>
                     </h:panelGrid>
-                    <p:commandButton value="Finish editing" actionListener="#{schemaManagerBean.setSchemaBinaryDataFieldName(testBean.selectedDB)}" update="@form :binaryFieldForm"/>
+                    <p:commandButton value="Finish editing" actionListener="#{schemaManagerBean.setSchemaBinaryDataFieldName(mainManagerBean.selectedDB)}" update="@form :binaryFieldForm"/>
                 </div>
             </h:form>
         </p:dialog>
-    </body>
+    </h:body>
 </html>

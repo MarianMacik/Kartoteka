@@ -386,6 +386,7 @@ public class FilingCabinetManagerBean implements Serializable {
                 ObjectId fileId = (ObjectId) file;
                 GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
                 GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
+                //no need for closing InputStream - primefaces will close it accordint to documentation
                 StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());
                 map.put(fileId, fileContent);
             }

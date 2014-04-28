@@ -13,6 +13,7 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -47,7 +48,7 @@ public class FileUploadBean implements Serializable{
     private FilingCabinetManagerBean filingCabinetManagerBean;
     
     @Inject
-    private TestBean testBean;
+    private MainManagerBean testBean;
     
     private CabinetCard actualCard;
     
@@ -62,7 +63,8 @@ public class FileUploadBean implements Serializable{
         GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
         try {
             //get inputFile and save it to GridFS
-            GridFSInputFile gfsFile = binaryDB.createFile(event.getFile().getInputstream(), event.getFile().getFileName());
+            InputStream is = event.getFile().getInputstream();
+            GridFSInputFile gfsFile = binaryDB.createFile(is, event.getFile().getFileName());
             gfsFile.save();
             ObjectId fileId = (ObjectId) gfsFile.getId();
             System.out.println(gfsFile);
@@ -77,7 +79,7 @@ public class FileUploadBean implements Serializable{
             
             filingCabinet.update(match, new BasicDBObject("$push", update));
             
-            
+            is.close();
             
         } catch (IOException ex) {
             Logger.getLogger(FileUploadBean.class.getName()).log(Level.SEVERE, "Problem with file uploading", ex);
@@ -162,6 +164,7 @@ public class FileUploadBean implements Serializable{
                 ObjectId fileId = (ObjectId) file;
                 GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
                 GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
+                //no need for closing InputStream - primefaces will close it accordint to documentation
                 StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());
                 map.put(fileId, fileContent);
             }

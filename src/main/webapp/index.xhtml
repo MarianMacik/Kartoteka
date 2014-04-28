@@ -6,59 +6,111 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>Facelet Title</title>
+        <title>Filing cabinet as SaaS</title>
+        <h:outputStylesheet name="style.css"/>
     </h:head>
-    <h:body onload="#{testBean.loadUserSchemas()}">
-        Hello from Facelets
-        <br />
-        <h:form>
-            <h:dataTable value="#{testBean.schemas}" var="coll" >
+    <h:body onload="#{mainManagerBean.loadUserSchemas()}">
+        <p:layout fullPage="true" >
 
-                <h:column>    				
-                    <f:facet name="header">Name</f:facet>    				
+            <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false">
+                <f:view locale="#{language.localeCode}">
+                    <h:form styleClass="langBar">
+                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                            <p:graphicImage library="images" name="en.png" />
+                        </p:commandLink>
+                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                            <p:graphicImage library="images" name="sk.png"/>
+                        </p:commandLink>
+                    </h:form>
+                </f:view>
+                <center>
+                    <h1><h:outputText value="Filing cabinet as SaaS" styleClass="appTitle"/></h1>
+                </center>
+                
+            </p:layoutUnit>
 
-                    <h:outputText value="#{coll.value}"/>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Edit</f:facet>
-                    <p:commandButton value="Edit Schema" 
-                                     action="#{schemaManagerBean.setSchemaAndShow(coll.key, testBean.selectedDB)}"> 
-                    </p:commandButton>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Delete</f:facet>
-                    <p:commandButton value="Delete" 
-                                     actionListener="#{schemaManagerBean.removeSchema(coll, testBean.selectedDB)}" update="@all"> 
-                        <p:confirm header="Confirmation" message="Are you sure? You will lose all data in this collection." icon="ui-icon-alert" />  
-                    </p:commandButton>
+            <p:layoutUnit position="west" size="250" collapsible="true">
+                
+                <h:form>
+                    <center>
+                    <h:outputText value="#{authenticationBean.profile.firstName} #{authenticationBean.profile.lastName}"
+                                  styleClass="header"/>
+                    
+                    </center>
+                    <center>
+                    <h:outputText value="(#{authenticationBean.profile.email})"
+                                  styleClass="header"/>
+                    </center>
+                    <p:menu styleClass="leftMenu" >
+                        <p:menuitem value="Filing cabinet list" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
+                        <p:menuitem value="Logout" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
+                    </p:menu>
+                </h:form>
+            </p:layoutUnit>
 
-                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode" style="text-align: center; alignment-adjust: middle">  
-                        <div style="text-align: center" >
-                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
-                        </div>
-                    </p:confirmDialog>  
-                </h:column>
-                <h:column>
-                    <f:facet name="header">View Data</f:facet>
-                    <p:commandButton value="View Data" 
-                                     action="#{filingCabinetManagerBean.loadFilingCabinetAndShow(coll.key, testBean.selectedDB)}"> 
-                    </p:commandButton>
-                </h:column>
+            <p:layoutUnit position="center" >
+                <p:layout>
+                    <p:layoutUnit position="center" >
+                        <h:form>
+                            <p:dataTable value="#{mainManagerBean.schemas}" var="coll" style="border: none !important; width: 750px; table-layout: fixed;
+                                         word-wrap: break-word;">
 
-            </h:dataTable>
+                                <p:column style="max-width: 90px">    				
+                                    <f:facet name="header">Name</f:facet>    				
+                                    <div style="text-align: center">
+                                        <h:outputText value="#{coll.value}"/>
+                                    </div>
+                                </p:column>
+                                <p:column style="max-width: 40px">
+                                    <f:facet name="header">Edit</f:facet>
+                                    <div style="text-align: center">
+                                        <p:commandButton value="Edit Schema" 
+                                                         action="#{schemaManagerBean.setSchemaAndShow(coll.key, mainManagerBean.selectedDB)}"> 
+                                        </p:commandButton>
+                                    </div>
+                                </p:column>
+                                <p:column width="90">
+                                    <f:facet name="header">Delete</f:facet>
+                                    <div style="text-align: center">
+                                        <p:commandButton value="Delete" 
+                                                         actionListener="#{schemaManagerBean.removeSchema(coll, mainManagerBean.selectedDB)}" update="@all"> 
+                                            <p:confirm header="Confirmation" message="Are you sure? You will lose all data in this collection." icon="ui-icon-alert" />  
+                                        </p:commandButton>
+
+                                        <p:confirmDialog global="true" showEffect="fade" hideEffect="explode" style="text-align: center; alignment-adjust: middle">  
+                                            <div style="text-align: center" >
+                                                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
+                                            </div>
+                                        </p:confirmDialog>
+                                    </div>
+                                </p:column>
+                                <p:column width="120">
+                                    <f:facet name="header">View Data</f:facet>
+                                    <div style="text-align: center">
+                                        <p:commandButton value="View Data" 
+                                                         action="#{filingCabinetManagerBean.loadFilingCabinetAndShow(coll.key, mainManagerBean.selectedDB)}"> 
+                                        </p:commandButton>
+                                    </div>
+                                </p:column>
+
+                            </p:dataTable>
+                        </h:form>
+                    </p:layoutUnit>
+                    <p:layoutUnit position="south" size="80" style="padding: 0px !important;border: none">
+                        <h:form>
+                            <p:commandButton  oncomplete="PF('addSchemaDialog').show()" value="Add Schema" icon="ui-icon-plusthick" />  
+                        </h:form>
+                    </p:layoutUnit>
+                </p:layout>
+            </p:layoutUnit>
+
+        </p:layout>
 
 
-<!--            <p:commandButton value="Zobraz" actionListener="#{testBean.loadUserSchemas()}" update="@form" />-->
 
 
 
-        </h:form>
-
-        <h:form>
-            <p:commandButton  oncomplete="PF('addSchemaDialog').show()" value="Add Schema" icon="ui-icon-plusthick" />  
-        </h:form>
-        
         <p:dialog header="Add Schema" widgetVar="addSchemaDialog" id="dialogForSchema" width="320">  
             <h:form>
                 <div align="center">
@@ -67,7 +119,7 @@
                         <p:outputLabel for="schemaNameInput" value="Schema name: "/>
                         <p:inputText id="schemaNameInput" size="10" value="#{schemaManagerBean.newSchemaToAdd.title}"/>
                     </h:panelGrid>
-                    <p:commandButton value="Add Schema" actionListener="#{schemaManagerBean.addSchema(testBean.schemas, testBean.selectedDB)}" update="@form"/>
+                    <p:commandButton value="Add Schema" actionListener="#{schemaManagerBean.addSchema(mainManagerBean.schemas, mainManagerBean.selectedDB)}" update="@form"/>
                 </div>
             </h:form>
         </p:dialog>

@@ -7,11 +7,14 @@ package cz.muni.fi.pv168.kartoteka;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.context.ExternalContext;
 import javax.faces.context.FacesContext;
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
 import org.brickred.socialauth.AuthProvider;
@@ -26,8 +29,13 @@ import org.brickred.socialauth.util.SocialAuthUtil;
 @SessionScoped
 public class AuthenticationBean implements Serializable {
 
+    private static final String WELCOME_URL = "http://localhost:8080/Kartoteka/welcome.xhtml";
+    private static final String LOGIN_SUCCES_URL = "http://localhost:8080/Kartoteka/loginSuccess.xhtml";
+    private static final String INDEX_URL = "http://localhost:8080/Kartoteka/index.xhtml";
+    @Inject
+    MainManagerBean mainBean;
+
     private SocialAuthManager manager;
-    private String originalURL;
     private String providerID;
     private Profile profile;
 
@@ -46,7 +54,7 @@ public class AuthenticationBean implements Serializable {
         if ("facebook".equals(providerID)) {
             props.put("graph.facebook.com.consumer_key", FACEBOOK_APP_ID);
             props.put("graph.facebook.com.consumer_secret", FACEBOOK_APP_SECRET);
-            props.put("graph.facebook.com.custom_permissions", "publish_stream,email,user_birthday,user_location,offline_access");
+            props.put("graph.facebook.com.custom_permissions", "email");
         } else {
             props.put("www.google.com.consumer_key", GOOGLE_ID);
             props.put("www.google.com.consumer_secret", GOOGLE_SECRET);
@@ -63,9 +71,9 @@ public class AuthenticationBean implements Serializable {
 
         String authenticationURL;
         if (providerID.equals("facebook")) {
-            authenticationURL = manager.getAuthenticationUrl(providerID, "http://localhost:8080/Kartoteka/index.xhtml");
+            authenticationURL = manager.getAuthenticationUrl(providerID, LOGIN_SUCCES_URL);
         } else {
-            authenticationURL = manager.getAuthenticationUrl(providerID, "http://localhost:8080/Kartoteka/index.xhtml", Permission.AUTHENTICATE_ONLY);
+            authenticationURL = manager.getAuthenticationUrl(providerID, LOGIN_SUCCES_URL, Permission.AUTHENTICATE_ONLY);
         }
 
         FacesContext.getCurrentInstance().getExternalContext().redirect(authenticationURL);
@@ -86,13 +94,17 @@ public class AuthenticationBean implements Serializable {
                 System.out.println("User's Social profile: " + profile);
 
                 // Redirect the user back to where they have been before logging in
-                FacesContext.getCurrentInstance().getExternalContext().redirect(originalURL);
+                FacesContext.getCurrentInstance().getExternalContext().redirect(INDEX_URL);
+                
+                String selectedDB = hashUserInfo();
+                System.out.println(selectedDB);
+                this.mainBean.setSelectedDB(selectedDB);
 
             } else {
-                FacesContext.getCurrentInstance().getExternalContext().redirect(externalContext.getRequestContextPath() + "/home.xhtml");
+                FacesContext.getCurrentInstance().getExternalContext().redirect(WELCOME_URL);
             }
         } catch (UserDeniedPermissionException ex) {
-            FacesContext.getCurrentInstance().getExternalContext().redirect("http://localhost:8080/FacebookAuthentication/deniedPermission.xhtml");
+            FacesContext.getCurrentInstance().getExternalContext().redirect(WELCOME_URL);
         } catch (Exception ex) {
             System.out.println("UserSession - Exception: " + ex.toString());
         }
@@ -113,20 +125,38 @@ public class AuthenticationBean implements Serializable {
             HttpServletRequest request = (HttpServletRequest) externalContext.getRequest();
             externalContext.invalidateSession();
 
-            
-
             if (providerID.equals("facebook")) {
-                String logoutUrl = "https://www.facebook.com/logout.php?next=http://localhost:8080/FacebookAuthentication/home.xhtml&access_token=" + userToken;
+                String logoutUrl = "https://www.facebook.com/logout.php?next=http://localhost:8080/Kartoteka/welcome.xhtml&access_token=" + userToken;
                 FacesContext.getCurrentInstance().getExternalContext().redirect(logoutUrl);
             } else {
-                FacesContext.getCurrentInstance().getExternalContext().redirect(externalContext.getRequestContextPath() + "/home.xhtml");
+                FacesContext.getCurrentInstance().getExternalContext().redirect(externalContext.getRequestContextPath() + "/welcome.xhtml");
             }
 
             // Redirect to home page
             //FacesContext.getCurrentInstance().getExternalContext().redirect(externalContext.getRequestContextPath() + "/home.xhtml");
         } catch (IOException ex) {
-            System.out.println("UserSessionBean - IOException: " + ex.toString());
+            System.out.println("AuthenticationBean - IOException: " + ex.toString());
         }
+    }
+
+    private String hashUserInfo() throws NoSuchAlgorithmException {
+        String userName = profile.getEmail();
+
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        md.update(userName.getBytes());
+
+        byte byteData[] = md.digest();
+
+        //convert the byte to hex format method 2
+        StringBuilder hexString = new StringBuilder();
+        for (int i = 0; i < byteData.length; i++) {
+            String hex = Integer.toHexString(0xff & byteData[i]);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     // Getters and Setters
@@ -136,14 +166,6 @@ public class AuthenticationBean implements Serializable {
 
     public void setManager(SocialAuthManager manager) {
         this.manager = manager;
-    }
-
-    public String getOriginalURL() {
-        return originalURL;
-    }
-
-    public void setOriginalURL(String originalURL) {
-        this.originalURL = originalURL;
     }
 
     public String getProviderID() {

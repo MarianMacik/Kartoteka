@@ -304,7 +304,7 @@ public class SchemaManagerBean implements Serializable {
         } else if (schemaNames.contains(newSchemaToAdd.getTitle())) {
             FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
             return;
-        } else if(newSchemaToAdd.getTitle().equals("Schemas")){
+        } else if (newSchemaToAdd.getTitle().equals("Schemas")) {
             FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name cannot be 'Schemas'!", null));
             return;
         }
@@ -384,7 +384,10 @@ public class SchemaManagerBean implements Serializable {
         //we will also rename appropriate filing cabinet
         if (!oldSchemaName.equals(this.schema.getTitle())) {
             DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(oldSchemaName);
-            filingCabinet.rename(this.schema.getTitle());
+
+            if (dbUtils.getMongoClient().getDB(selectedDB).collectionExists(filingCabinet.getName())) {
+                filingCabinet.rename(this.schema.getTitle());
+            }
         }
         this.schema = loadSchema(this.schema.getId(), selectedDB);
         schemaNameEditMode = false;
@@ -698,7 +701,7 @@ public class SchemaManagerBean implements Serializable {
                 FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
                 return true;
             }
-        } else if(title.equals("Schemas")){
+        } else if (title.equals("Schemas")) {
             FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name cannot be 'Schemas'!", null));
             return true;
         }

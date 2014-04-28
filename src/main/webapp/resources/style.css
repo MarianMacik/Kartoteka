@@ -1,0 +1,70 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 28.4.2014, 19:23:58
+    Author     : Majo
+*/
+
+#topPanel.ui-layout-north {
+    border: none !important;
+    padding: 0px !important;
+    
+}
+
+#topPanel.ui-layout-north .ui-layout-unit-content {
+    padding: 0px !important;
+    background-color: #3b5998;
+
+}
+
+.secondaryPanel{
+    padding: 0px !important; 
+    border: none !important;
+}
+
+.ui-layout-center{
+     border: none !important;
+    padding: 0px !important;
+}
+
+.appTitle {
+    font-weight: bold; 
+    color: white;
+    margin: 0px;
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif
+        
+}
+
+.header {
+    font-weight: bold;
+    padding-left: 20px;
+    color: black;
+    background: transparent;
+}
+
+.leftMenu{
+    margin-top: 15px
+}
+
+.langBar {
+    float: right;
+    line-height: 31px;
+    padding-top: 5px;
+    padding-right: 10px;
+}
+
+.langBar .ui-commandlink {
+    margin-left: 5px;
+}
+
+.ui-button {
+    font-size: 14px !important;
+
+}
+.schemaTitle {
+    font-size: 28px; 
+    font-weight: bold;
+}

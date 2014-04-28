@@ -11,10 +11,21 @@ and open the template in the editor.
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>TODO supply a title</title>
+        <title>Filing cabinet as SaaS</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <h:outputStylesheet name="style.css"/>
     </h:head>
     <h:body>
+        <f:view locale="#{language.localeCode}">
+                    <h:form styleClass="langBar">
+                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                            <p:graphicImage library="images" name="en.png" />
+                        </p:commandLink>
+                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                            <p:graphicImage library="images" name="sk.png"/>
+                        </p:commandLink>
+                    </h:form>
+                </f:view>
         <center style="margin: 15px"><h2>Please select the way you want to log in</h2>
 
             <div style="margin:200px "> 
@@ -25,14 +36,15 @@ and open the template in the editor.
                             <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="facebook" />
                         </h:commandButton>
                         <br/>
-                        <p:commandLink id="google" action="#{authenticationBean.socialConnect}" >
+                        <h:commandButton id="google" action="#{authenticationBean.socialConnect}" image="resources/images/google-icon.png">
                             <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="google" />
-                            <p:graphicImage library="images" name="google-icon.png"/>
-                        </p:commandLink>
+                        </h:commandButton>
                     </h:panelGroup>
                 </h:form>
             </div> 
         </center>
 
+        
+        
     </h:body>
 </html>

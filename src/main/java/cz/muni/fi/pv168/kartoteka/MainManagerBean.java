@@ -31,7 +31,7 @@ import org.bson.types.ObjectId;
  */
 @Named
 @SessionScoped
-public class TestBean implements Serializable{
+public class MainManagerBean implements Serializable{
     private String selectedDB = "test";
     
     private List<Entry<ObjectId,String>> schemas = new ArrayList<>();

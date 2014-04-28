@@ -7,89 +7,135 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>TODO supply a title</title>
+        <title>Filing cabinet as SaaS</title>
         <!--        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>-->
+        <h:outputStylesheet name="style.css"/>
     </h:head>
     <body>
-        <div>Cabinet</div>
-        <h2><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.title}"/></h2>
+        <p:layout fullPage="true" >
 
-        
-        <h:form id="backButton">
-            <p:commandButton value="Back to list of filing cabinets" 
-                             action="index.xhtml?faces-redirect=true" icon="ui-icon-arrowreturnthick-1-w"> 
-            </p:commandButton>
-        </h:form>
-        <br/>
-        <h:form id="table">
-            <p:commandButton id="downloadLink" value="Export data" ajax="false"  actionListener="#{dataExporterBean.prepareDownload(filingCabinetManagerBean.filingCabinet.schema.title, testBean.selectedDB)}"  
-                             icon="ui-icon-arrowthick-1-s">  
-                <p:fileDownload value="#{dataExporterBean.file}" />  
-            </p:commandButton>  
-            <p:dataGrid value="#{filingCabinetManagerBean.filingCabinet.filingCabinetData}" var="cabinetCard" paginator="true" columns="1" rows="1" paginatorPosition="top" 
-                        rowsPerPageTemplate="1,2,3,4,5,6,7,8"
-                        currentPageReportTemplate="{startRecord}-{endRecord} z {totalRecords}"
-                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
-                <p:panel header="#{cabinetCard.id}">
-
-                    <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
-
-                        <h:column><h:outputText value="#{schemaField.fieldTitle}:" style="font-size: 20px;font-weight: bold"/></h:column>
-                        <h:column>
-                            <ul>
-                                <ui:repeat value="#{cabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
-                                    <li><h:outputText value="#{data.string}"/></li>
-                                </ui:repeat>
-                            </ul>     
-                        </h:column>
-                    </h:dataTable>
+            <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false" >
+                <f:view locale="#{language.localeCode}">
+                    <h:form styleClass="langBar">
+                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                            <p:graphicImage library="images" name="en.png" />
+                        </p:commandLink>
+                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                            <p:graphicImage library="images" name="sk.png"/>
+                        </p:commandLink>
+                    </h:form>
+                </f:view>
+                <center>
+                    <h1><h:outputText value="Filing cabinet as SaaS" styleClass="appTitle"/></h1>
+                </center>
+                </p:layoutUnit>
 
 
-                    <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}" style="vertical-align: top">
-                        <h:column><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}: " style="font-size: 20px;font-weight: bold"/></h:column>
-                        <h:column>
-                            <ul>
-                                <h:dataTable value="#{cabinetCard.files}" var="file">
-                                    <h:column>
-                                        <li><p:commandButton id="downloadLinkFile" value="#{file.value.getName()}" ajax="false"  
-                                                             icon="ui-icon-arrowthick-1-s">  
-                                                <p:fileDownload value="#{file.value}" />  
-                                            </p:commandButton>
-                                        </li>
-                                    </h:column>
-                                </h:dataTable>
-                            </ul>     
-                        </h:column>
-                    </h:dataTable>
 
-                    <p:commandButton value="Attach/Remove files" 
-                                     icon="ui-icon-document" action="cardupload.xhtml?faces-redirect=true" actionListener="#{fileUploadBean.setActualCard(cabinetCard)}"
-                                     rendered="#{not empty filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}">
-                    </p:commandButton>
+            <p:layoutUnit position="west" size="250" collapsible="true">
+                <h:form>
+                    <center>
+                    <h:outputText value="#{authenticationBean.profile.firstName} #{authenticationBean.profile.lastName}"
+                                  styleClass="header"/>
+                    
+                    </center>
+                    <center>
+                    <h:outputText value="(#{authenticationBean.profile.email})"
+                                  styleClass="header"/>
+                    </center>
+                    <p:menu styleClass="leftMenu">
+                        <p:menuitem value="Filing cabinet list" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
+                        <p:menuitem value="Logout" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
+                    </p:menu>
+                </h:form>
+            </p:layoutUnit>
+            <p:layoutUnit position="center" >
 
-                    <p:commandButton value="Edit item" 
-                                     oncomplete="PF('editDialog').show()" icon="ui-icon-pencil" update=":dialogForEdit" actionListener="#{filingCabinetManagerBean.copyCabinetCardToEdit(cabinetCard)}">
-                    </p:commandButton>
+                <p:layout>
+                    <p:layoutUnit position="north" styleClass="secondaryPanel" size="85">
+                        <h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.title}" styleClass="schemaTitle"/>
+                        <h:form>
+                            <p:commandButton  oncomplete="PF('addDialog').show()" value="Add" icon="ui-icon-plusthick" style="margin-top: 10px"/>  
+                            
+                            <p:commandButton id="downloadLink" value="Export data" ajax="false"  actionListener="#{dataExporterBean.prepareDownload(filingCabinetManagerBean.filingCabinet.schema.title, mainManagerBean.selectedDB)}"  
+                                             icon="ui-icon-arrowthick-1-s"
+                                             style="margin-top: 10px; float: right">  
+                                <p:fileDownload value="#{dataExporterBean.file}" />  
+                            </p:commandButton>  
+                        </h:form>
+                    </p:layoutUnit>
+                    <p:layoutUnit position="center">
+                        <h:form id="table">
 
-                    <p:commandButton value="Delete item" 
-                                     actionListener="#{filingCabinetManagerBean.removeCabinetCard(cabinetCard, testBean.selectedDB)}" update="@form" icon="ui-icon-closethick">
-                        <p:confirm header="Confirmation" message="Do you really want to delete this item?" icon="ui-icon-alert" />  
-                    </p:commandButton>
+                            <p:dataGrid value="#{filingCabinetManagerBean.filingCabinet.filingCabinetData}" var="cabinetCard" paginator="true" columns="1" rows="1" paginatorPosition="both" 
+                                        rowsPerPageTemplate="1,2,3,4,5,6,7,8"
+                                        currentPageReportTemplate="{startRecord}-{endRecord} z {totalRecords}"
+                                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+                                <p:panel header="" style="padding: 0px !important;">
 
-                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
-                        <div style="text-align: center" >
-                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
-                        </div>
-                    </p:confirmDialog>  
-                </p:panel>
-            </p:dataGrid>
-        </h:form>
+                                    <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
 
-        <h:form>
-            <p:commandButton  oncomplete="PF('addDialog').show()" value="Add" icon="ui-icon-plusthick" />  
-        </h:form>
-        
+                                        <h:column><h:outputText value="#{schemaField.fieldTitle}:" style="font-size: 20px;font-weight: bold"/></h:column>
+                                        <h:column>
+                                            <ul>
+                                                <ui:repeat value="#{cabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
+                                                    <li><h:outputText value="#{data.string}"/></li>
+                                                </ui:repeat>
+                                            </ul>     
+                                        </h:column>
+                                    </h:dataTable>
+
+
+                                    <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}" style="vertical-align: top">
+                                        <h:column><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}: " style="font-size: 20px;font-weight: bold"/></h:column>
+                                        <h:column>
+                                            <ul>
+                                                <h:dataTable value="#{cabinetCard.files}" var="file">
+                                                    <h:column>
+                                                        <li><p:commandButton id="downloadLinkFile" value="#{file.value.getName()}" ajax="false"  
+                                                                             icon="ui-icon-arrowthick-1-s"
+                                                                             style="font-size: 14px !important">  
+                                                                <p:fileDownload value="#{file.value}" />  
+                                                            </p:commandButton>
+                                                        </li>
+                                                    </h:column>
+                                                </h:dataTable>
+                                            </ul>     
+                                        </h:column>
+                                    </h:dataTable>
+
+                                    <p:commandButton value="Attach/Remove files" 
+                                                     icon="ui-icon-document" action="cardupload.xhtml?faces-redirect=true" actionListener="#{fileUploadBean.setActualCard(cabinetCard)}"
+                                                     rendered="#{not empty filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}"
+                                                     style="font-size: 14px !important">
+                                    </p:commandButton>
+
+                                    <p:commandButton value="Edit item" 
+                                                     oncomplete="PF('editDialog').show()" icon="ui-icon-pencil" update=":dialogForEdit" actionListener="#{filingCabinetManagerBean.copyCabinetCardToEdit(cabinetCard)}"
+                                                     style="font-size: 14px !important">
+                                    </p:commandButton>
+
+                                    <p:commandButton value="Delete item" 
+                                                     actionListener="#{filingCabinetManagerBean.removeCabinetCard(cabinetCard, mainManagerBean.selectedDB)}" update="@form" icon="ui-icon-closethick"
+                                                     style="font-size: 14px !important">
+                                        <p:confirm header="Confirmation" message="Do you really want to delete this item?" icon="ui-icon-alert" />  
+                                    </p:commandButton>
+
+                                    <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
+                                        <div style="text-align: center" >
+                                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                                        </div>
+                                    </p:confirmDialog>  
+                                </p:panel>
+                            </p:dataGrid>
+                        </h:form>
+
+                        
+                    </p:layoutUnit>
+                </p:layout>
+            </p:layoutUnit>
+        </p:layout>
 
         <p:dialog header="Add data" widgetVar="addDialog" height='650'>  
             <h:form id="addForm">
@@ -132,7 +178,7 @@
                 <p:messages id="validationMessage" />
                 <div style="text-align: center" >
                     <p:commandButton value="Add data" 
-                                     action="#{filingCabinetManagerBean.addNewCabinetCard(testBean.selectedDB)}" update=":table @form"/>
+                                     action="#{filingCabinetManagerBean.addNewCabinetCard(mainManagerBean.selectedDB)}" update=":table @form"/>
                 </div>
             </h:form>
         </p:dialog>  
@@ -178,7 +224,7 @@
                 <p:messages id="validationMessage" />
                 <div style="text-align: center" >
                     <p:commandButton value="Finish editing" 
-                                     action="#{filingCabinetManagerBean.editCabinetCard(testBean.selectedDB)}" update=":table @form" />
+                                     action="#{filingCabinetManagerBean.editCabinetCard(mainManagerBean.selectedDB)}" update=":table @form" />
                 </div>
             </h:form>
         </p:dialog>  
