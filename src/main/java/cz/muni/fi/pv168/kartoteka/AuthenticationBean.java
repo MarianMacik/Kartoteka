@@ -36,10 +36,11 @@ public class AuthenticationBean implements Serializable {
     MainManagerBean mainBean;
 
     private SocialAuthManager manager;
-    private String providerID;
+    private String providerID = new String();
     private Profile profile;
 
     public AuthenticationBean() {
+        System.out.println("CREATED");
     }
 
     public void socialConnect() throws Exception {
@@ -64,7 +65,7 @@ public class AuthenticationBean implements Serializable {
         //props.put("graph.facebook.com.custom_permissions", "publish_stream,email,user_birthday,user_location,offline_access");
         //props.put("googleapis.com.custom_permissions", "https://www.googleapis.com/auth/userinfo.profile,profile,email");
         // Initiate required components
-        SocialAuthConfig config = SocialAuthConfig.getDefault();
+        SocialAuthConfig config = new SocialAuthConfig();
         config.load(props);
         manager = new SocialAuthManager();
         manager.setSocialAuthConfig(config);
