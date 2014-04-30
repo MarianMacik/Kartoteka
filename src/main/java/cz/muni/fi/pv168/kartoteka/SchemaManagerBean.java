@@ -23,8 +23,10 @@ import java.io.Serializable;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,29 +115,36 @@ public class SchemaManagerBean implements Serializable {
         for (Entry<ObjectId, String> entry : actualFields) {
             fieldNames.add(entry.getValue());
         }
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
 
-        if (newSchemaField.getFieldTitle().equals("")) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be named!", null));
+        ObjectId fieldId = newSchemaField.getId();
+        String fieldTitle = newSchemaField.getFieldTitle();
+        
+        //testing constraints for schema field
+        if (fieldTitle.equals("")) {
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeNamedMessage"), null));
             validationError = true;
-        } else if ((fieldNames.contains(newSchemaField.getFieldTitle()) && !actualFields.contains(new AbstractMap.SimpleEntry<>(newSchemaField.getId(), newSchemaField.getFieldTitle())))
-                || newSchemaField.getFieldTitle().equals(schema.getBinaryDataFieldName())) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be unique!", null));
+        } else if ((fieldNames.contains(fieldTitle) && !actualFields.contains(new AbstractMap.SimpleEntry<>(fieldId, fieldTitle))) || fieldTitle.equals(schema.getBinaryDataFieldName())) {
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeUnique"), null));
             validationError = true;
-        } else if (newSchemaField.getFieldTitle().contains("$") || newSchemaField.getFieldTitle().contains(".")) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must not contain '.' or '$'!", null));
+        } else if (fieldTitle.contains("$") || fieldTitle.contains(".")) {
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldInvalidCharacters"), null));
             validationError = true;
         }
 
         //control if the regular expression is valid
         String constraint = newSchemaField.getConstraint();
         //if it is not equal to these constraints -> then it is regular expression
-        boolean validRegex = false;
+        boolean validRegex;
         if (!constraint.equals("True/False") && !constraint.equals("Numbers") && !constraint.equals("Numbers and letters") && !constraint.equals("Letters")) {
             validRegex = validateRegex(constraint);
 
             //if it is not valid - error message is shown
             if (!validRegex) {
-                FacesContext.getCurrentInstance().addMessage("regexMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "Your regular expression is not valid!", null));
+                ctx.addMessage("regexMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("regexInvalidMessage"), null));
                 validationError = true;
             }
         }
@@ -184,30 +193,35 @@ public class SchemaManagerBean implements Serializable {
         for (Entry<ObjectId, String> entry : actualFields) {
             fieldNames.add(entry.getValue());
         }
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
 
-        if (schemaFieldToEdit.getFieldTitle().equals("")) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be named!", null));
+        ObjectId fieldId = schemaFieldToEdit.getId();
+        String fieldTitle = schemaFieldToEdit.getFieldTitle();
+        
+        if (fieldTitle.equals("")) {
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeNamedMessage"), null));
             validationError = true;
-        } else if (fieldNames.contains(schemaFieldToEdit.getFieldTitle()) && !actualFields.contains(new AbstractMap.SimpleEntry<>(schemaFieldToEdit.getId(), schemaFieldToEdit.getFieldTitle()))) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be unique!", null));
+        } else if (fieldNames.contains(fieldTitle) && !actualFields.contains(new AbstractMap.SimpleEntry<>(fieldId, fieldTitle)) || fieldTitle.equals(schema.getBinaryDataFieldName())) {
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeUnique"), null));
             validationError = true;
-        } else if (schemaFieldToEdit.getFieldTitle().contains("$") || schemaFieldToEdit.getFieldTitle().contains(".")) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must not contain '.' or '$'!", null));
+        } else if (fieldTitle.contains("$") || fieldTitle.contains(".")) {
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldInvalidCharacters"), null));
             validationError = true;
         }
 
         //control if the regular expression is valid
         String constraint = schemaFieldToEdit.getConstraint();
         //if it is not equal to these constraints -> then it is regular expression
-        boolean validRegex = false;
+        boolean validRegex;
         if (!constraint.equals("True/False") && !constraint.equals("Numbers") && !constraint.equals("Numbers and letters") && !constraint.equals("Letters")) {
             validRegex = validateRegex(constraint);
 
             //if it is not valid - error message is shown
             if (!validRegex) {
-                FacesContext.getCurrentInstance().addMessage("regexMessageEdit", new FacesMessage(FacesMessage.SEVERITY_WARN, "Your regular expression is not valid!", null));
-                //refresh, so we have actual data even when we partially changed regex, but we realized it was non-valid
-                this.schema = loadSchema(schema.getId(), selectedDB);
+                ctx.addMessage("regexMessageEdit", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("regexInvalidMessage"), null));
                 validationError = true;
             }
         }
@@ -284,28 +298,6 @@ public class SchemaManagerBean implements Serializable {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
 
         if (invalidSchemaName(newSchemaToAdd.getTitle(), schemas, false)) {
-            return;
-        }
-
-        List<String> schemaNames = new ArrayList<>();
-
-        for (Entry<ObjectId, String> entry : schemas) {
-            schemaNames.add(entry.getValue());
-        }
-
-        //schema must be named
-        if (newSchemaToAdd.getTitle().equals("")) {
-            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema must be named!", null));
-            return;
-        } else if (newSchemaToAdd.getTitle().contains("$") || newSchemaToAdd.getTitle().startsWith("system.") || newSchemaToAdd.getTitle().equals("fs.files") || newSchemaToAdd.getTitle().equals("fs.chunks")) {
-            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must not contain $ or starts with 'system.' prefix or be 'fs.files' or 'fs.chunks'!", null));
-            return;
-            //schema must be unique
-        } else if (schemaNames.contains(newSchemaToAdd.getTitle())) {
-            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
-            return;
-        } else if (newSchemaToAdd.getTitle().equals("Schemas")) {
-            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name cannot be 'Schemas'!", null));
             return;
         }
 
@@ -516,6 +508,11 @@ public class SchemaManagerBean implements Serializable {
                 fieldToEditInDB = field;
             }
         }
+        
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
 
         while (cursor.hasNext()) {
             BasicDBObject record = (BasicDBObject) cursor.next();
@@ -525,7 +522,7 @@ public class SchemaManagerBean implements Serializable {
             //we have to check if we changed not mandatory to mandatory
             if (!fieldToEditInDB.isMandatory() && schemaFieldToEdit.isMandatory()) {
                 if (!validMandatory(data)) {
-                    FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "Some of the documents don't have data - mandatory violation", null));
+                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("mandatoryViolationMessage"), null));
                     return false;
                 }
             }
@@ -534,7 +531,7 @@ public class SchemaManagerBean implements Serializable {
             if (!fieldToEditInDB.getConstraint().equals(schemaFieldToEdit.getConstraint())) {
                 //File cannot be changed (it is forced on page) so we might have only changed True/False, Numbers, Numbers and letters, Letters, Regex to something from these options
                 if (!validConstraint(data, schemaFieldToEdit.getConstraint())) {
-                    FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "Some of the documents don't match desired constraint", null));
+                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("constraintViolationMessage"), null));
                     return false;
                 }
             }
@@ -543,7 +540,7 @@ public class SchemaManagerBean implements Serializable {
             if (fieldToEditInDB.isRepeatable() && !schemaFieldToEdit.isRepeatable()) {
                 //we have to check on the size of each data list
                 if (!validNonRepeatable(data)) {
-                    FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "Some of the documents contain repeatable data", null));
+                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("repeatableViolationMessage"), null));
                     return false;
                 }
             }
@@ -683,26 +680,31 @@ public class SchemaManagerBean implements Serializable {
         for (Map.Entry<ObjectId, String> entry : schemas) {
             schemaNames.add(entry.getValue());
         }
+        
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
 
         if (title.equals("")) {
-            FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema must be named!", null));
+            ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetMustBeNamedMessage"), null));
             return true;
-        } else if (title.contains("$") || title.startsWith("system.") || title.equals("fs.files") || title.equals("fs.chunks")) {
-            FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must not contain $ or starts with 'system.' prefix or be 'fs.files' or 'fs.chunks'!", null));
+        } else if (title.contains("$") || title.startsWith("system.")) {
+            ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetInvalidCharacters"), null));
             return true;
             //schema must be unique
         } else if (schemaNames.contains(title)) {
             if (editMode) {
                 if (!schemas.contains(new AbstractMap.SimpleEntry<>(this.schema.getId(), this.schema.getTitle()))) {
-                    FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
+                    ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetMustBeUnique"), null));
                     return true;
                 }
             } else {
-                FacesContext.getCurrentInstance().addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name must be unique!", null));
+                ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetMustBeUnique"), null));
                 return true;
             }
-        } else if (title.equals("Schemas")) {
-            FacesContext.getCurrentInstance().addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, "Schema name cannot be 'Schemas'!", null));
+        } else if (title.equals("Schemas") || title.equals("fs.files") || title.equals("fs.chunks")) {
+            ctx.addMessage("schemaValidationErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetReservedName"), null));
             return true;
         }
 

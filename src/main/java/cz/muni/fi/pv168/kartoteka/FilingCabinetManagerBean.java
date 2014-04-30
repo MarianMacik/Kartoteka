@@ -18,8 +18,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.ResourceBundle;
 import javax.enterprise.context.SessionScoped;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
@@ -153,6 +155,11 @@ public class FilingCabinetManagerBean implements Serializable {
     public void addNewCabinetCard(String selectedDB) {
         String collectionName = filingCabinet.getSchema().getTitle();
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(collectionName);
+        
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
 
         BasicDBObject newRecord = new BasicDBObject();
         //to indicate if there was a validation error
@@ -165,8 +172,8 @@ public class FilingCabinetManagerBean implements Serializable {
 
             //if it is empty and it is required - then it is validation problem
             if (schemaField.isMandatory() && myStringData.isEmpty()) {
-                message = schemaField.getFieldTitle() + " is required!";
-                FacesContext.getCurrentInstance().addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
+                message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("requiredMessage");
+                ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
                 validationError = true;
             }
 
@@ -178,8 +185,8 @@ public class FilingCabinetManagerBean implements Serializable {
 
                 //first - validation of required constraint
                 if (schemaField.isMandatory() && myString.getString().isEmpty() && noRequiredMessageSoFar) { //if validation is unsuccessful
-                    message = schemaField.getFieldTitle() + " is required!";
-                    FacesContext.getCurrentInstance().addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
+                    message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("requiredMessage");
+                    ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
                     validationError = true;
                     noRequiredMessageSoFar = false;
                 }
@@ -190,16 +197,16 @@ public class FilingCabinetManagerBean implements Serializable {
 
                         ValidatorType validatorType = validator.getValidatorType();
                         if (validatorType == ValidatorType.NUMBER) {
-                            message = schemaField.getFieldTitle() + " field has to be number!";
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeNumberMessage");
                         } else if (validatorType == ValidatorType.LETTER) {
-                            message = schemaField.getFieldTitle() + " field has to consist only of letters!";
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeLettersMessage");
                         } else if (validatorType == ValidatorType.NUMBER_AND_LETTER) {
-                            message = schemaField.getFieldTitle() + " field has to consist only of numbers and letters!";
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeNumberOrLettersMessage");
                         } else if (validatorType == ValidatorType.REGEX) {
-                            message = schemaField.getFieldTitle() + " field does not match regex" + schemaField.getConstraint();
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("notMatchingRegexMessage");
                         }
 
-                        FacesContext.getCurrentInstance().addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
+                        ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
                         noValidationMessagesSoFar = false;
                         validationError = true;
                     }

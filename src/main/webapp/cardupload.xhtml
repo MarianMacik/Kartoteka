@@ -98,7 +98,7 @@ and open the template in the editor.
 
                                                 <p:commandButton value="#{msg['deleteFileButton']}" 
                                                                  actionListener="#{fileUploadBean.deleteFile(file.key)}" update=":card"> 
-                                                    <p:confirm header="#{msg['confirmDialogHeader']}" message="Are you sure?" icon="ui-icon-alert" />  
+                                                    <p:confirm header="#{msg['confirmDialogHeader']}" message="#{msg['confirmFileDeleteMessage']}" icon="ui-icon-alert" />  
                                                 </p:commandButton>
 
                                             </h:column>

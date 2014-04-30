@@ -12,6 +12,9 @@ import cz.muni.fi.pv168.validator.NumberValidator;
 import cz.muni.fi.pv168.validator.RegexValidator;
 import cz.muni.fi.pv168.validator.TrueFalseValidator;
 import cz.muni.fi.pv168.validator.Validator;
+import java.util.Locale;
+import java.util.ResourceBundle;
+import javax.faces.context.FacesContext;
 import org.bson.types.ObjectId;
 
 /**
@@ -105,6 +108,18 @@ public class SchemaField {
     }
 
     public void setConstraint(String constraint) {
+        this.constraint = constraint;
+    }
+    
+    public String getMyConstraint() {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
+        
+        return rb.getString("schemaFieldMustBeNamedMessage");
+    }
+
+    public void setMyConstraint(String constraint) {
         this.constraint = constraint;
     }
 
