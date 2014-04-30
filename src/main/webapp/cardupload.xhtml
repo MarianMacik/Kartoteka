@@ -12,7 +12,7 @@ and open the template in the editor.
       xmlns:p="http://primefaces.org/ui"
       xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
     <h:head>
-        <title>Filing cabinet as SaaS</title>
+        <title>#{msg['headTitle']}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <h:outputStylesheet name="style.css"/>
     </h:head>
@@ -20,18 +20,18 @@ and open the template in the editor.
         <p:layout fullPage="true" >
 
             <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false" >
-                <f:view locale="#{language.localeCode}">
+                <f:view locale="#{languageBean.localeCode}">
                     <h:form styleClass="langBar">
-                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                        <p:commandLink title="English" action="#{languageBean.setLocaleCode('en')}" update="@all" oncomplete="javascript:location.reload(true)">
                             <p:graphicImage library="images" name="en.png" />
                         </p:commandLink>
-                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                        <p:commandLink title="Slovenčina" action="#{languageBean.setLocaleCode('sk')}" update="@all" oncomplete="javascript:location.reload(true)">
                             <p:graphicImage library="images" name="sk.png"/>
                         </p:commandLink>
                     </h:form>
                 </f:view>
                 <center>
-                    <h1><h:outputText value="Filing cabinet as SaaS" styleClass="appTitle"/></h1>
+                    <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
             </p:layoutUnit>
 
@@ -47,8 +47,8 @@ and open the template in the editor.
                                   styleClass="header"/>
                     </center>
                     <p:menu styleClass="leftMenu">
-                        <p:menuitem value="Filing cabinet list" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
-                        <p:menuitem value="Logout" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
+                        <p:menuitem value="#{msg['filingCabinetListButton']}" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
+                        <p:menuitem value="#{msg['logoutButton']}" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
                     </p:menu>
                 </h:form>
             </p:layoutUnit>
@@ -56,7 +56,7 @@ and open the template in the editor.
             <p:layoutUnit position="center">
 
                 <h:form id="backButton">
-                    <p:commandButton value="Back to filing cabinet" 
+                    <p:commandButton value="#{msg['backToFilingCabinetButton']}" 
                                      action="#{filingCabinetManagerBean.loadFilingCabinetAndShow(filingCabinetManagerBean.filingCabinet.schema.id, mainManagerBean.selectedDB)}"
                                      icon="ui-icon-arrowreturnthick-1-w"
                                      style="margin-top: 10px; margin-bottom: 10px"> 
@@ -96,9 +96,9 @@ and open the template in the editor.
 
                                             <h:column>
 
-                                                <p:commandButton value="Delete" 
+                                                <p:commandButton value="#{msg['deleteFileButton']}" 
                                                                  actionListener="#{fileUploadBean.deleteFile(file.key)}" update=":card"> 
-                                                    <p:confirm header="Confirmation" message="Are you sure?" icon="ui-icon-alert" />  
+                                                    <p:confirm header="#{msg['confirmDialogHeader']}" message="Are you sure?" icon="ui-icon-alert" />  
                                                 </p:commandButton>
 
                                             </h:column>
@@ -110,7 +110,8 @@ and open the template in the editor.
 
                         <h:form enctype="multipart/form-data">
                             <p:fileUpload fileUploadListener="#{fileUploadBean.uploadFile}" mode="advanced" dragDropSupport="false"  
-                                          multiple="true" style="width: 1000px;" update=":card"/>  
+                                          multiple="true" style="width: 1000px;" update=":card" label="#{msg['chooseFileLabel']}" uploadLabel="#{msg['uploadFileLabel']}" 
+                                          cancelLabel="#{msg['cancelFileLabel']}" />  
 
                         </h:form>
                     </p:panel>
@@ -120,8 +121,8 @@ and open the template in the editor.
         <h:form>
             <p:confirmDialog global="true" showEffect="fade" hideEffect="explode" style="text-align: center; alignment-adjust: middle">  
                 <div style="text-align: center" >
-                    <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                    <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
+                    <p:commandButton value="#{msg['confirmDialogYes']}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                    <p:commandButton value="#{msg['confirmDialogNo']}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
                 </div>
             </p:confirmDialog> 
         </h:form>

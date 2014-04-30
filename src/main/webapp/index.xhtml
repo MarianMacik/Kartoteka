@@ -6,25 +6,25 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>Filing cabinet as SaaS</title>
+        <title>#{msg['headTitle']}</title>
         <h:outputStylesheet name="style.css"/>
     </h:head>
     <h:body onload="#{mainManagerBean.loadUserSchemas()}">
         <p:layout fullPage="true" >
 
             <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false">
-                <f:view locale="#{language.localeCode}">
+                <f:view locale="#{languageBean.localeCode}">
                     <h:form styleClass="langBar">
-                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                        <p:commandLink title="English" action="#{languageBean.setLocaleCode('en')}" update="@all" oncomplete="javascript:location.reload(true)">
                             <p:graphicImage library="images" name="en.png" />
                         </p:commandLink>
-                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                        <p:commandLink title="Slovenčina" action="#{languageBean.setLocaleCode('sk')}" update="@all" oncomplete="javascript:location.reload(true)">
                             <p:graphicImage library="images" name="sk.png"/>
                         </p:commandLink>
                     </h:form>
                 </f:view>
                 <center>
-                    <h1><h:outputText value="Filing cabinet as SaaS" styleClass="appTitle"/></h1>
+                    <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
                 
             </p:layoutUnit>
@@ -42,8 +42,8 @@
                                   styleClass="header"/>
                     </center>
                     <p:menu styleClass="leftMenu" >
-                        <p:menuitem value="Filing cabinet list" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
-                        <p:menuitem value="Logout" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
+                        <p:menuitem value="#{msg['filingCabinetListButton']}" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
+                        <p:menuitem value="#{msg['logoutButton']}" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
                     </p:menu>
                 </h:form>
             </p:layoutUnit>
@@ -52,43 +52,43 @@
                 <p:layout>
                     <p:layoutUnit position="center" >
                         <h:form>
-                            <p:dataTable value="#{mainManagerBean.schemas}" var="coll" style="border: none !important; width: 750px; table-layout: fixed;
+                            <p:dataTable value="#{mainManagerBean.schemas}" var="coll" style="border: none !important; width: 780px; table-layout: fixed;
                                          word-wrap: break-word;">
 
                                 <p:column style="max-width: 90px">    				
-                                    <f:facet name="header">Name</f:facet>    				
+                                    <f:facet name="header">#{msg['cabinetsTableNameHeader']}</f:facet>    				
                                     <div style="text-align: center">
                                         <h:outputText value="#{coll.value}"/>
                                     </div>
                                 </p:column>
                                 <p:column style="max-width: 40px">
-                                    <f:facet name="header">Edit</f:facet>
+                                    <f:facet name="header">#{msg['cabinetsTableEditHeader']}</f:facet>
                                     <div style="text-align: center">
-                                        <p:commandButton value="Edit Schema" 
+                                        <p:commandButton value="#{msg['cabinetsTableEditButton']}" 
                                                          action="#{schemaManagerBean.setSchemaAndShow(coll.key, mainManagerBean.selectedDB)}"> 
                                         </p:commandButton>
                                     </div>
                                 </p:column>
                                 <p:column width="90">
-                                    <f:facet name="header">Delete</f:facet>
+                                    <f:facet name="header">#{msg['cabinetsTableDeleteHeader']}</f:facet>
                                     <div style="text-align: center">
-                                        <p:commandButton value="Delete" 
+                                        <p:commandButton value="#{msg['cabinetsTableDeleteButton']}" 
                                                          actionListener="#{schemaManagerBean.removeSchema(coll, mainManagerBean.selectedDB)}" update="@all"> 
-                                            <p:confirm header="Confirmation" message="Are you sure? You will lose all data in this collection." icon="ui-icon-alert" />  
+                                            <p:confirm header="#{msg['confirmDialogHeader']}" message="#{msg['confirmCabinetDeleteMessage']}" icon="ui-icon-alert" />  
                                         </p:commandButton>
 
                                         <p:confirmDialog global="true" showEffect="fade" hideEffect="explode" style="text-align: center; alignment-adjust: middle">  
                                             <div style="text-align: center" >
-                                                <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                                                <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
+                                                <p:commandButton value="#{msg['confirmDialogYes']}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                                                <p:commandButton value="#{msg['confirmDialogNo']}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>       
                                             </div>
                                         </p:confirmDialog>
                                     </div>
                                 </p:column>
-                                <p:column width="120">
-                                    <f:facet name="header">View Data</f:facet>
+                                <p:column width="140">
+                                    <f:facet name="header">#{msg['cabinetsTableViewDataHeader']}</f:facet>
                                     <div style="text-align: center">
-                                        <p:commandButton value="View Data" 
+                                        <p:commandButton value="#{msg['cabinetsTableViewDataButton']}" 
                                                          action="#{filingCabinetManagerBean.loadFilingCabinetAndShow(coll.key, mainManagerBean.selectedDB)}"> 
                                         </p:commandButton>
                                     </div>
@@ -99,7 +99,7 @@
                     </p:layoutUnit>
                     <p:layoutUnit position="south" size="80" style="padding: 0px !important;border: none">
                         <h:form>
-                            <p:commandButton  oncomplete="PF('addSchemaDialog').show()" value="Add Schema" icon="ui-icon-plusthick" />  
+                            <p:commandButton  oncomplete="PF('addSchemaDialog').show()" value="#{msg['addCabinetButton']}" icon="ui-icon-plusthick" />  
                         </h:form>
                     </p:layoutUnit>
                 </p:layout>
@@ -111,20 +111,18 @@
 
 
 
-        <p:dialog header="Add Schema" widgetVar="addSchemaDialog" id="dialogForSchema" width="320">  
+        <p:dialog header="#{msg['addCabinetDialogHeader']}" widgetVar="addSchemaDialog" id="dialogForSchema" width="320">  
             <h:form>
                 <div align="center">
                     <p:messages id="schemaValidationErrorMessage" autoUpdate="false"/>
                     <h:panelGrid columns="2">
-                        <p:outputLabel for="schemaNameInput" value="Schema name: "/>
+                        <p:outputLabel for="schemaNameInput" value="#{msg['addCabinetName']}:"/>
                         <p:inputText id="schemaNameInput" size="10" value="#{schemaManagerBean.newSchemaToAdd.title}"/>
                     </h:panelGrid>
-                    <p:commandButton value="Add Schema" actionListener="#{schemaManagerBean.addSchema(mainManagerBean.schemas, mainManagerBean.selectedDB)}" update="@form"/>
+                    <p:commandButton value="#{msg['addCabinetButton']}" actionListener="#{schemaManagerBean.addSchema(mainManagerBean.schemas, mainManagerBean.selectedDB)}" update="@form"/>
                 </div>
             </h:form>
         </p:dialog>
-
-        <h:link outcome="welcomePrimefaces" value="Primefaces welcome page" />
     </h:body>
 </html>
 

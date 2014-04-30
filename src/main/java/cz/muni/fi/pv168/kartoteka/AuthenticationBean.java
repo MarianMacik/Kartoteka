@@ -40,7 +40,6 @@ public class AuthenticationBean implements Serializable {
     private Profile profile;
 
     public AuthenticationBean() {
-        System.out.println("CREATED");
     }
 
     public void socialConnect() throws Exception {

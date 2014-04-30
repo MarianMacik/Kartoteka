@@ -7,7 +7,7 @@
       xmlns:ui="http://java.sun.com/jsf/facelets"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>Filing cabinet as SaaS</title>
+        <title>#{msg['headTitle']}</title>
         <!--        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>-->
         <h:outputStylesheet name="style.css"/>
     </h:head>
@@ -15,18 +15,18 @@
         <p:layout fullPage="true" >
 
             <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false" >
-                <f:view locale="#{language.localeCode}">
+                <f:view locale="#{languageBean.localeCode}">
                     <h:form styleClass="langBar">
-                        <p:commandLink title="English" action="#{language.setLocaleCode('en')}" update="@all">
+                        <p:commandLink title="English" action="#{languageBean.setLocaleCode('en')}" update="@all" oncomplete="javascript:location.reload(true)">
                             <p:graphicImage library="images" name="en.png" />
                         </p:commandLink>
-                        <p:commandLink title="Slovenčina" action="#{language.setLocaleCode('sk')}" update="@all">
+                        <p:commandLink title="Slovenčina" action="#{languageBean.setLocaleCode('sk')}" update="@all" oncomplete="javascript:location.reload(true)">
                             <p:graphicImage library="images" name="sk.png"/>
                         </p:commandLink>
                     </h:form>
                 </f:view>
                 <center>
-                    <h1><h:outputText value="Filing cabinet as SaaS" styleClass="appTitle"/></h1>
+                    <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
                 </p:layoutUnit>
 
@@ -44,8 +44,8 @@
                                   styleClass="header"/>
                     </center>
                     <p:menu styleClass="leftMenu">
-                        <p:menuitem value="Filing cabinet list" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
-                        <p:menuitem value="Logout" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
+                        <p:menuitem value="#{msg['filingCabinetListButton']}" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
+                        <p:menuitem value="#{msg['logoutButton']}" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
                     </p:menu>
                 </h:form>
             </p:layoutUnit>
@@ -55,9 +55,9 @@
                     <p:layoutUnit position="north" styleClass="secondaryPanel" size="85">
                         <h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.title}" styleClass="schemaTitle"/>
                         <h:form>
-                            <p:commandButton  oncomplete="PF('addDialog').show()" value="Add" icon="ui-icon-plusthick" style="margin-top: 10px"/>  
+                            <p:commandButton  oncomplete="PF('addDialog').show()" value="#{msg['addCabinetCardButton']}" icon="ui-icon-plusthick" style="margin-top: 10px"/>  
                             
-                            <p:commandButton id="downloadLink" value="Export data" ajax="false"  actionListener="#{dataExporterBean.prepareDownload(filingCabinetManagerBean.filingCabinet.schema.title, mainManagerBean.selectedDB)}"  
+                            <p:commandButton id="downloadLink" value="#{msg['exportDataButton']}" ajax="false"  actionListener="#{dataExporterBean.prepareDownload(filingCabinetManagerBean.filingCabinet.schema.title, mainManagerBean.selectedDB)}"  
                                              icon="ui-icon-arrowthick-1-s"
                                              style="margin-top: 10px; float: right">  
                                 <p:fileDownload value="#{dataExporterBean.file}" />  
@@ -69,7 +69,7 @@
 
                             <p:dataGrid value="#{filingCabinetManagerBean.filingCabinet.filingCabinetData}" var="cabinetCard" paginator="true" columns="1" rows="1" paginatorPosition="both" 
                                         rowsPerPageTemplate="1,2,3,4,5,6,7,8"
-                                        currentPageReportTemplate="{startRecord}-{endRecord} z {totalRecords}"
+                                        currentPageReportTemplate="{startRecord}-{endRecord} #{msg['paginatorPreposition']} {totalRecords}"
                                         paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
                                 <p:panel header="" style="padding: 0px !important;">
 
@@ -104,27 +104,27 @@
                                         </h:column>
                                     </h:dataTable>
 
-                                    <p:commandButton value="Attach/Remove files" 
+                                    <p:commandButton value="#{msg['attachRemoveFilesButton']}" 
                                                      icon="ui-icon-document" action="cardupload.xhtml?faces-redirect=true" actionListener="#{fileUploadBean.setActualCard(cabinetCard)}"
                                                      rendered="#{not empty filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}"
                                                      style="font-size: 14px !important">
                                     </p:commandButton>
 
-                                    <p:commandButton value="Edit item" 
+                                    <p:commandButton value="#{msg['editCabinetCardButton']}" 
                                                      oncomplete="PF('editDialog').show()" icon="ui-icon-pencil" update=":dialogForEdit" actionListener="#{filingCabinetManagerBean.copyCabinetCardToEdit(cabinetCard)}"
                                                      style="font-size: 14px !important">
                                     </p:commandButton>
 
-                                    <p:commandButton value="Delete item" 
+                                    <p:commandButton value="#{msg['deleteCabinetCardButton']}" 
                                                      actionListener="#{filingCabinetManagerBean.removeCabinetCard(cabinetCard, mainManagerBean.selectedDB)}" update="@form" icon="ui-icon-closethick"
                                                      style="font-size: 14px !important">
-                                        <p:confirm header="Confirmation" message="Do you really want to delete this item?" icon="ui-icon-alert" />  
+                                        <p:confirm header="#{msg['confirmDialogHeader']}" message="#{msg['deleteCabinetCardDialogMessage']}" icon="ui-icon-alert" />  
                                     </p:commandButton>
 
                                     <p:confirmDialog global="true" showEffect="fade" hideEffect="explode">  
                                         <div style="text-align: center" >
-                                            <p:commandButton value="Yes" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
-                                            <p:commandButton value="No" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
+                                            <p:commandButton value="#{msg['confirmDialogYes']}" type="button" styleClass="ui-confirmdialog-yes" icon="ui-icon-check"/>  
+                                            <p:commandButton value="#{msg['confirmDialogNo']}" type="button" styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>   
                                         </div>
                                     </p:confirmDialog>  
                                 </p:panel>
@@ -137,7 +137,7 @@
             </p:layoutUnit>
         </p:layout>
 
-        <p:dialog header="Add data" widgetVar="addDialog" height='650'>  
+        <p:dialog header="#{msg['addCabinetCardDialogHeader']}" widgetVar="addDialog" height='650'>  
             <h:form id="addForm">
 
                 <h:dataTable id="dataTable" value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
@@ -152,8 +152,8 @@
                                     <li>
                                         <p:inputText value="#{data.string}" rendered="#{not (schemaField.constraint eq &quot;True/False&quot;)}"/>
                                         <p:selectOneButton value="#{data.string}" rendered="#{schemaField.constraint eq &quot;True/False&quot;}">  
-                                            <f:selectItem itemLabel="True" itemValue="True" />  
-                                            <f:selectItem itemLabel="False" itemValue="False" />  
+                                            <f:selectItem itemLabel="#{msg['trueLabel']}" itemValue="True" />  
+                                            <f:selectItem itemLabel="#{msg['falseLabel']}" itemValue="False" />  
                                         </p:selectOneButton>  
                                     </li> 
                                 </h:column> 
@@ -177,14 +177,14 @@
                 </h:dataTable>
                 <p:messages id="validationMessage" />
                 <div style="text-align: center" >
-                    <p:commandButton value="Add data" 
+                    <p:commandButton value="#{msg['addCabinetCardButton']}" 
                                      action="#{filingCabinetManagerBean.addNewCabinetCard(mainManagerBean.selectedDB)}" update=":table @form"/>
                 </div>
             </h:form>
         </p:dialog>  
 
 
-        <p:dialog header="Edit data" widgetVar="editDialog" id="dialogForEdit" height='650'>  
+        <p:dialog header="#{msg['editCabinetCardDialogHeader']}" widgetVar="editDialog" id="dialogForEdit" height='650'>  
             <h:form id="editForm">
                 <h:dataTable id="dataTable" value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
 
@@ -198,8 +198,8 @@
                                     <li>
                                         <p:inputText value="#{data.string}" rendered="#{not (schemaField.constraint eq &quot;True/False&quot;)}"/>
                                         <p:selectOneButton value="#{data.string}" rendered="#{schemaField.constraint eq &quot;True/False&quot;}">  
-                                            <f:selectItem itemLabel="True" itemValue="True" />  
-                                            <f:selectItem itemLabel="False" itemValue="False" />  
+                                            <f:selectItem itemLabel="#{msg['trueLabel']}" itemValue="True" />  
+                                            <f:selectItem itemLabel="#{msg['falseLabel']}" itemValue="False" />  
                                         </p:selectOneButton>  
                                     </li> 
                                 </h:column> 
@@ -223,7 +223,7 @@
                 </h:dataTable>
                 <p:messages id="validationMessage" />
                 <div style="text-align: center" >
-                    <p:commandButton value="Finish editing" 
+                    <p:commandButton value="#{msg['editCabinetCardDialogButton']}" 
                                      action="#{filingCabinetManagerBean.editCabinetCard(mainManagerBean.selectedDB)}" update=":table @form" />
                 </div>
             </h:form>
