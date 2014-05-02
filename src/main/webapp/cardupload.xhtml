@@ -64,7 +64,7 @@ and open the template in the editor.
                 </h:form>
 
                 <h:form id="card">
-                    <p:panel header="#{fileUploadBean.actualCard.id}">
+                    <p:panel header="">
 
                         <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">
 
@@ -73,7 +73,9 @@ and open the template in the editor.
                                 <ul>
                                     <h:dataTable value="#{fileUploadBean.actualCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
                                         <h:column>
-                                            <li><h:outputText value="#{data.string}"/></li>
+                                            <li><h:outputText value="#{data.localizedString}" rendered="#{(data.string eq 'True') ||  (data.string eq 'False')}"/>
+                                                <h:outputText value="#{data.string}" rendered="#{not ((data.string eq 'True') ||  (data.string eq 'False'))}"/>
+                                            </li>
                                         </h:column>
                                     </h:dataTable>
                                 </ul>     
@@ -81,7 +83,7 @@ and open the template in the editor.
                         </h:dataTable>
 
                         <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}" style="vertical-align: top">
-                            <h:column><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}: " style="font-size: 20px;font-weight: bold"/></h:column>
+                            <h:column><h:outputText value="#{msg['schemaFieldForFilesLabel']}" style="font-size: 20px;font-weight: bold"/></h:column>
                             <h:column>
                                 <ul>
                                     <h:form enctype="multipart/form-data">

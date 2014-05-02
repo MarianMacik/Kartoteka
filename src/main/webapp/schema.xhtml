@@ -82,13 +82,21 @@ and open the template in the editor.
                                     <h:outputText value="#{coll.fieldTitle}"/>
                                 </p:column>
                                 <p:column headerText="#{msg['schemaMandatoryHeader']}">
-                                    <h:outputText value="#{coll.mandatory}"/>
+                                    <div style="text-align: center" >
+                                        
+                                        <p:graphicImage library="images" name="checkBoxTrue.png" rendered="#{coll.mandatory}"/>
+                                        <p:graphicImage library="images" name="checkBoxFalse.png" rendered="#{ not coll.mandatory}"/>
+                                    </div>
                                 </p:column>
                                 <p:column headerText="#{msg['schemaConstraintHeader']}">
-                                    <h:outputText value="#{coll.constraint}"/>
+                                    <h:outputText value="#{coll.myConstraint}"/>
                                 </p:column>
                                 <p:column headerText="#{msg['schemaRepeatableHeader']}">
-                                    <h:outputText value="#{coll.repeatable}"/>
+                                    <div style="text-align: center" >
+                                        
+                                        <p:graphicImage library="images" name="checkBoxTrue.png" rendered="#{coll.repeatable}"/>
+                                        <p:graphicImage library="images" name="checkBoxFalse.png" rendered="#{ not coll.repeatable}"/>
+                                    </div>
                                 </p:column>
                                 <p:column headerText="#{msg['schemaDeleteHeader']}">
                                     <div style="text-align: center">
@@ -114,24 +122,17 @@ and open the template in the editor.
                         </h:form>
 
                         <h:form id="binaryFieldForm">
-                            <p:outputLabel value="#{msg['schemaFieldForFilesName']}:" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
-                            <h:outputText value="#{schemaManagerBean.schema.binaryDataFieldName}" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
+                            <p:outputLabel value="#{msg['schemaFieldForFilesSetMessage']}" rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>
                             <h:outputText value="#{msg['schemaFieldForFilesNotSetMessage']}" rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>
 
                             <h:form>
-
-                                <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="#{msg['schemaFieldForFilesNameAddButton']}" icon="ui-icon-pencil" 
-                                                  update=":dialogForSchemaFieldFile"
-                                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}" 
+                                <p:commandButton  value="#{msg['schemaFieldForFilesAddButton']}" icon="ui-icon-pencil" 
+                                                  action="#{schemaManagerBean.setSchemaBinaryDataField(mainManagerBean.selectedDB)}"
+                                                  update="@all"
                                                   rendered="#{empty schemaManagerBean.schema.binaryDataFieldName}"/>  
 
-                                <p:commandButton  oncomplete="PF('editBinaryDataFieldNameDialog').show()" value="#{msg['schemaFieldForFilesNameEditButton']}" icon="ui-icon-pencil" 
-                                                  update=":dialogForSchemaFieldFile"
-                                                  actionListener="#{schemaManagerBean.copySchemaBinaryDataFieldName(schemaManagerBean.schema.binaryDataFieldName)}"
-                                                  rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}"/>  
 
-
-                                <p:commandButton value="#{msg['schemaFieldForFilesNameDeleteButton']}" 
+                                <p:commandButton value="#{msg['schemaFieldForFilesDeleteButton']}" 
                                                  actionListener="#{schemaManagerBean.removeSchemaBinaryDataField(mainManagerBean.selectedDB)}" update="@all"
                                                  rendered="#{not empty schemaManagerBean.schema.binaryDataFieldName}">
                                     <p:confirm header="#{msg['confirmDialogHeader']}" message="#{msg['confirmSchemaFieldDeleteMessage']}" icon="ui-icon-alert" />  
@@ -151,29 +152,58 @@ and open the template in the editor.
             </p:layoutUnit>
 
         </p:layout>
-        <p:dialog header="#{msg['addSchemaFieldDialogHeader']}" widgetVar="addSchemaFieldDialog" id="dialogForSchemaFieldAdd" width="450">  
+        <p:dialog header="#{msg['addSchemaFieldDialogHeader']}" widgetVar="addSchemaFieldDialog" id="dialogForSchemaFieldAdd" width="500">  
             <h:form>
                 <div align="center">
                     <p:messages id="regexMessageAdd" autoUpdate="false"/>
                 </div>
-                <h:panelGrid columns="2">
-                    <p:outputLabel for="fieldTitle" value="#{msg['schemaTitleOfFieldHeader']}: "/>
-                    <p:inputText id="fieldTitle" size="17" value="#{schemaManagerBean.newSchemaField.fieldTitle}" />
+                <p:panelGrid styleClass="schemaFieldPanelGrid">
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="fieldTitle" value="#{msg['schemaTitleOfFieldHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:inputText id="fieldTitle" size="17" value="#{schemaManagerBean.newSchemaField.fieldTitle}" />
+                        </p:column>
+                    </p:row>
 
-                    <p:outputLabel for="mandatory" value="#{msg['schemaMandatoryHeader']}: "/>
-                    <p:selectBooleanCheckbox id="mandatory" value="#{schemaManagerBean.newSchemaField.mandatory}" />
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="mandatory" value="#{msg['schemaMandatoryHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:selectBooleanCheckbox id="mandatory" value="#{schemaManagerBean.newSchemaField.mandatory}" />
+                        </p:column>
+                    </p:row>
 
-                    <p:outputLabel for="constraint" value="#{msg['schemaConstraintHeader']}: "/>
-                    <p:selectOneMenu id="constraint" value="#{schemaManagerBean.newSchemaField.constraint}" editable="true">  
-                        <f:selectItem itemLabel="#{msg['numbersConstraintLabel']}" />  
-                        <f:selectItem itemLabel="#{msg['numbersAndLettersConstraintLabel']}"  />  
-                        <f:selectItem itemLabel="#{msg['lettersConstraintLabel']}"  /> 
-                        <f:selectItem itemLabel="#{msg['trueFalseConstraintLabel']}"  /> 
-                    </p:selectOneMenu>
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="constraint" value="#{msg['schemaConstraintHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:selectOneMenu id="constraint" value="#{schemaManagerBean.newSchemaField.constraint}" editable="false">  
+                                <f:selectItem itemLabel="#{msg['Numbers']}" itemValue="Numbers"/>  
+                                <f:selectItem itemLabel="#{msg['Numbers and letters']}" itemValue="Numbers and letters" />  
+                                <f:selectItem itemLabel="#{msg['Letters']}"  itemValue="Letters"/> 
+                                <f:selectItem itemLabel="#{msg['True/False']}"  itemValue="True/False"/> 
+                                <f:selectItem itemLabel="#{msg['Regex']}" itemValue="Regex"/> 
+                                <p:ajax event="change" update="@form" process="@form"/>
+                            </p:selectOneMenu>
 
-                    <p:outputLabel for="repeatable" value="#{msg['schemaRepeatableHeader']}: "/>
-                    <p:selectBooleanCheckbox id="repeatable" value="#{schemaManagerBean.newSchemaField.repeatable}" />
-                </h:panelGrid>
+
+                            <p:inputText size="17" value="#{schemaManagerBean.newSchemaField.regex}" rendered="#{schemaManagerBean.newSchemaField.constraint eq &quot;Regex&quot;}"/>
+                        </p:column>
+                    </p:row>
+
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="repeatable" value="#{msg['schemaRepeatableHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:selectBooleanCheckbox id="repeatable" value="#{schemaManagerBean.newSchemaField.repeatable}" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
 
                 <div align="center">
                     <p:commandButton value="#{msg['addSchemaFieldButton']}" 
@@ -182,46 +212,62 @@ and open the template in the editor.
             </h:form>
         </p:dialog>
 
-        <p:dialog header="#{msg['editSchemaFieldDialogHeader']}" widgetVar="editSchemaFieldDialog" id="dialogForSchemaFieldEdit" width="450" > 
+        <p:dialog header="#{msg['editSchemaFieldDialogHeader']}" widgetVar="editSchemaFieldDialog" id="dialogForSchemaFieldEdit" width="500" > 
             <h:form>
                 <div align="center">
                     <p:messages id="regexMessageAdd" autoUpdate="false"/>
                 </div>
-                <h:panelGrid columns="2">
-                    <p:outputLabel for="fieldTitle" value="#{msg['schemaTitleOfFieldHeader']}: "/>
-                    <p:inputText id="fieldTitle" size="15" value="#{schemaManagerBean.schemaFieldToEdit.fieldTitle}" />
+                <p:panelGrid styleClass="schemaFieldPanelGrid">
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="fieldTitle" value="#{msg['schemaTitleOfFieldHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:inputText id="fieldTitle" size="15" value="#{schemaManagerBean.schemaFieldToEdit.fieldTitle}" />
+                        </p:column>
+                    </p:row>
 
-                    <p:outputLabel for="mandatory" value="#{msg['schemaMandatoryHeader']}: "/>
-                    <p:selectBooleanCheckbox id="mandatory" value="#{schemaManagerBean.schemaFieldToEdit.mandatory}" />
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="mandatory" value="#{msg['schemaMandatoryHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:selectBooleanCheckbox id="mandatory" value="#{schemaManagerBean.schemaFieldToEdit.mandatory}" />
+                        </p:column>
+                    </p:row>
 
-                    <p:outputLabel for="constraint" value="#{msg['schemaConstraintHeader']}: "/>
-                    <p:selectOneMenu id="constraint" value="#{schemaManagerBean.schemaFieldToEdit.constraint}" editable="true">  
-                        <f:selectItem itemLabel="#{msg['numbersConstraintLabel']}"/>  
-                        <f:selectItem itemLabel="#{msg['numbersAndLettersConstraintLabel']}"  />  
-                        <f:selectItem itemLabel="#{msg['lettersConstraintLabel']}"  /> 
-                        <f:selectItem itemLabel="#{msg['trueFalseConstraintLabel']}"  /> 
-                    </p:selectOneMenu>
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="constraint" value="#{msg['schemaConstraintHeader']}: "/>
+                        </p:column>
+                        <p:column>
+                            <p:selectOneMenu id="constraint" value="#{schemaManagerBean.schemaFieldToEdit.constraint}">  
+                                <f:selectItem itemLabel="#{msg['Numbers']}" itemValue="Numbers"/>  
+                                <f:selectItem itemLabel="#{msg['Numbers and letters']}" itemValue="Numbers and letters" />  
+                                <f:selectItem itemLabel="#{msg['Letters']}"  itemValue="Letters"/> 
+                                <f:selectItem itemLabel="#{msg['True/False']}"  itemValue="True/False"/> 
+                                <f:selectItem itemLabel="#{msg['Regex']}" itemValue="Regex"/> 
+                                <p:ajax event="change" update="@form" process="@form"/>
+                            </p:selectOneMenu>
 
-                    <p:outputLabel for="repeatable" value="#{msg['schemaRepeatableHeader']}: "/>
-                    <p:selectBooleanCheckbox id="repeatable" value="#{schemaManagerBean.schemaFieldToEdit.repeatable}" />
-                </h:panelGrid>
+                            <p:inputText id="regexInput" size="17" value="#{schemaManagerBean.schemaFieldToEdit.regex}" 
+                                         style="display: #{(schemaManagerBean.schemaFieldToEdit.constraint eq &quot;Regex&quot;)?'':'none'}"/>
+                        </p:column>
+                    </p:row>
+                    <p:row>
+                        <p:column style="width: 120px">
+                            <p:outputLabel for="repeatable" value="#{msg['schemaRepeatableHeader']}: "/>
+                        </p:column>
+
+                        <p:column>
+                            <p:selectBooleanCheckbox id="repeatable" value="#{schemaManagerBean.schemaFieldToEdit.repeatable}" />
+                        </p:column>
+                    </p:row>
+                </p:panelGrid>
 
                 <div align="center">
                     <p:commandButton value="#{msg['schemaFieldEditButton']}" 
-                                     action="#{schemaManagerBean.editSchemaField(mainManagerBean.selectedDB)}" update="@form :tableForm" />
-                </div>
-            </h:form>
-        </p:dialog>
-
-        <p:dialog header="#{msg['editSchemaFieldForFilesNameDialogHeader']}" widgetVar="editBinaryDataFieldNameDialog" id="dialogForSchemaFieldFile" width="320">  
-            <h:form>
-                <div align="center">
-                    <p:messages id="schemaFieldTitleMessageAdd" autoUpdate="false"/>
-                    <h:panelGrid columns="2">
-                        <p:outputLabel for="schemaFieldNameInput" value="#{msg['schemaTitleOfFieldHeader']}: "/>
-                        <p:inputText id="schemaFieldNameInput" size="10" value="#{schemaManagerBean.newBinaryDataFieldName}"/>
-                    </h:panelGrid>
-                    <p:commandButton value="#{msg['finishEditNameButton']}" actionListener="#{schemaManagerBean.setSchemaBinaryDataFieldName(mainManagerBean.selectedDB)}" update="@form :binaryFieldForm"/>
+                                     action="#{schemaManagerBean.editSchemaField(mainManagerBean.selectedDB)}" update="@form :tableForm regexInput" />
                 </div>
             </h:form>
         </p:dialog>

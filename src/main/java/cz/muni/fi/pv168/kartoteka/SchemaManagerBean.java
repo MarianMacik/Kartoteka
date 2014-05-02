@@ -20,6 +20,7 @@ import cz.muni.fi.pv168.validator.TrueFalseValidator;
 import cz.muni.fi.pv168.validator.Validator;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,7 +75,7 @@ public class SchemaManagerBean implements Serializable {
 
         newSchema.setTitle(object.getString("title"));
 
-        newSchema.setBinaryDataFieldName(object.getString("BinaryDataFieldName"));
+        newSchema.setBinaryDataFieldName(object.getString("BinaryDataField"));
 
         BasicDBList fields = (BasicDBList) object.get("fields");
 
@@ -127,20 +128,23 @@ public class SchemaManagerBean implements Serializable {
         if (fieldTitle.equals("")) {
             ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeNamedMessage"), null));
             validationError = true;
-        } else if ((fieldNames.contains(fieldTitle) && !actualFields.contains(new AbstractMap.SimpleEntry<>(fieldId, fieldTitle))) || fieldTitle.equals(schema.getBinaryDataFieldName())) {
+        } else if ((fieldNames.contains(fieldTitle) && !actualFields.contains(new AbstractMap.SimpleEntry<>(fieldId, fieldTitle)))) {
             ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeUnique"), null));
             validationError = true;
         } else if (fieldTitle.contains("$") || fieldTitle.contains(".")) {
             ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldInvalidCharacters"), null));
             validationError = true;
+        } else if (fieldTitle.equals("Files")){
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldReservedName"), null));
+            validationError = true;
         }
 
         //control if the regular expression is valid
         String constraint = newSchemaField.getConstraint();
-        //if it is not equal to these constraints -> then it is regular expression
+        //if it is Regex -> then it is regular expression, so we have to get custom regular expression from regex attribute
         boolean validRegex;
-        if (!constraint.equals("True/False") && !constraint.equals("Numbers") && !constraint.equals("Numbers and letters") && !constraint.equals("Letters")) {
-            validRegex = validateRegex(constraint);
+        if (constraint.equals("Regex")) {
+            validRegex = validateRegex(newSchemaField.getRegex());
 
             //if it is not valid - error message is shown
             if (!validRegex) {
@@ -204,20 +208,23 @@ public class SchemaManagerBean implements Serializable {
         if (fieldTitle.equals("")) {
             ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeNamedMessage"), null));
             validationError = true;
-        } else if (fieldNames.contains(fieldTitle) && !actualFields.contains(new AbstractMap.SimpleEntry<>(fieldId, fieldTitle)) || fieldTitle.equals(schema.getBinaryDataFieldName())) {
+        } else if (fieldNames.contains(fieldTitle) && !actualFields.contains(new AbstractMap.SimpleEntry<>(fieldId, fieldTitle))) {
             ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldMustBeUnique"), null));
             validationError = true;
         } else if (fieldTitle.contains("$") || fieldTitle.contains(".")) {
             ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldInvalidCharacters"), null));
             validationError = true;
+        } else if (fieldTitle.equals("Files")){
+            ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("schemaFieldReservedName"), null));
+            validationError = true;
         }
 
         //control if the regular expression is valid
         String constraint = schemaFieldToEdit.getConstraint();
-        //if it is not equal to these constraints -> then it is regular expression
+        //if it is Regex -> then it is regular expression, so we have to get custom regular expression from regex attribute
         boolean validRegex;
-        if (!constraint.equals("True/False") && !constraint.equals("Numbers") && !constraint.equals("Numbers and letters") && !constraint.equals("Letters")) {
-            validRegex = validateRegex(constraint);
+        if (constraint.equals("Regex")) {
+            validRegex = validateRegex(schemaFieldToEdit.getRegex());
 
             //if it is not valid - error message is shown
             if (!validRegex) {
@@ -255,7 +262,12 @@ public class SchemaManagerBean implements Serializable {
 
         update.put("fields.$.fieldTitle", schemaFieldToEdit.getFieldTitle());
         update.put("fields.$.mandatory", schemaFieldToEdit.isMandatory());
-        update.put("fields.$.constraint", schemaFieldToEdit.getConstraint());
+        //if constraint is regex - we have to save regex, otherwise type of constraint directly
+        if(schemaFieldToEdit.getConstraint().equals("Regex")){
+            update.put("fields.$.constraint", schemaFieldToEdit.getRegex());
+        }else {
+            update.put("fields.$.constraint", schemaFieldToEdit.getConstraint());
+        }
         update.put("fields.$.repeatable", schemaFieldToEdit.isRepeatable());
 
         collection.update(match, new BasicDBObject("$set", update));
@@ -334,7 +346,7 @@ public class SchemaManagerBean implements Serializable {
             DBCursor cursor = cabinetToDelete.find();
             while (cursor.hasNext()) {
                 BasicDBObject document = (BasicDBObject) cursor.next();
-                removeFilesInDocument(document, binaryDataFieldName, selectedDB);
+                removeFilesInDocument(document, selectedDB);
             }
         }
         //now we will delete whole filing cabinet assigned to this schema
@@ -385,90 +397,35 @@ public class SchemaManagerBean implements Serializable {
         schemaNameEditMode = false;
     }
 
-    private boolean validateRegex(String regex) {
-        try {
-            Pattern.compile(regex);
-            return true;
-        } catch (PatternSyntaxException ex) {
-            return false;
-        }
-    }
-
-    private List<Map.Entry<ObjectId, String>> getSchemaFieldsIdName() {
-        List<SchemaField> fields = this.schema.getFields();
-
-        List<Entry<ObjectId, String>> result = new ArrayList<>();
-        for (SchemaField field : fields) {
-            result.add(new AbstractMap.SimpleEntry<>(field.getId(), field.getFieldTitle()));
-        }
-
-        return result;
-    }
-
     public void copySchemaFieldToEdit(SchemaField field) {
-        schemaFieldToEdit = new SchemaField(field.getId(), field.getFieldTitle(), field.isMandatory(), field.getConstraint(), field.isRepeatable(), field.getValidator());
+        schemaFieldToEdit = new SchemaField(field.getId(), field.getFieldTitle(), field.isMandatory(), field.getConstraint(), field.getRegex(), field.isRepeatable(), field.getValidator());
+        System.out.println("nieco");
     }
 
-    public void copySchemaBinaryDataFieldName(String fieldName) {
-        newBinaryDataFieldName = new String(fieldName);
-    }
-
-    public void setSchemaBinaryDataFieldName(String selectedDB) {
+    public void setSchemaBinaryDataField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
 
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
 
-        boolean validationError = false;
-
-        //control if the name of the adding fied is unique
-        List<Entry<ObjectId, String>> actualFields = getSchemaFieldsIdName();
-        List<String> fieldNames = new ArrayList<>();
-
-        for (Entry<ObjectId, String> entry : actualFields) {
-            fieldNames.add(entry.getValue());
-        }
-
-        if (newBinaryDataFieldName.equals("")) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be named!", null));
-            validationError = true;
-        } else if (fieldNames.contains(newBinaryDataFieldName)) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must be unique!", null));
-            validationError = true;
-        } else if (newBinaryDataFieldName.contains("$") || newBinaryDataFieldName.contains(".")) {
-            FacesContext.getCurrentInstance().addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, "SchemaField must not contain '.' or '$'!", null));
-            validationError = true;
-        }
-
-        if (validationError) {
-            return;
-        }
+        
 
         BasicDBObject update = new BasicDBObject();
-        update.put("BinaryDataFieldName", newBinaryDataFieldName);
+        update.put("BinaryDataField", "Files");
 
-        //we will update name of the field in schema collection, if it is not present, it is created
+        //we will insert binary data Field to Schema
         collection.update(match, new BasicDBObject("$set", update));
 
         //we will also insert blank fields to the documents in filingCabinet, if filingCabinet has any documents
         if (filingCabinet.count() != 0) {
             //newly added field name
-            if (!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() == null) {
-                filingCabinet.update(new BasicDBObject(), new BasicDBObject("$set", new BasicDBObject(newBinaryDataFieldName, new BasicDBList())), false, true);
-            }
-
-            //if new name is different and the field was set previously -> old name is not null -> we have to rename it
-            if (!newBinaryDataFieldName.equals(this.schema.getBinaryDataFieldName()) && this.schema.getBinaryDataFieldName() != null) {
-                filingCabinet.update(new BasicDBObject(), new BasicDBObject("$rename", new BasicDBObject(this.schema.getBinaryDataFieldName(), newBinaryDataFieldName)), false, true);
-            }
+                filingCabinet.update(new BasicDBObject(), new BasicDBObject("$set", new BasicDBObject("Files", new BasicDBList())), false, true);    
         }
 
         //actualisation of table in browser
         this.schema = loadSchema(schema.getId(), selectedDB);
 
-        //Hide the dialog, because submit was succesful
-        RequestContext.getCurrentInstance().execute("editBinaryDataFieldNameDialog.hide()");
     }
 
     public void removeSchemaBinaryDataField(String selectedDB) {
@@ -477,7 +434,7 @@ public class SchemaManagerBean implements Serializable {
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
 
         //We will also delete whole key BinaryDataFieldName - because it is not set
-        collection.update(match, new BasicDBObject("$unset", new BasicDBObject("BinaryDataFieldName", 1)));
+        collection.update(match, new BasicDBObject("$unset", new BasicDBObject("BinaryDataField", 1)));
 
         //we will also delete all values that are stored under this key in appropriate collection
         //But first, we have to delete files in GridFS and after that we can delete links (ObjectIds) to them
@@ -486,139 +443,13 @@ public class SchemaManagerBean implements Serializable {
         DBCursor cursor = collection.find();
         while (cursor.hasNext()) {
             BasicDBObject document = (BasicDBObject) cursor.next();
-            removeFilesInDocument(document, this.schema.getBinaryDataFieldName(), selectedDB);
+            removeFilesInDocument(document, selectedDB);
         }
         //now we can remove field with links (ObjectIds) from documents
-        collection.update(new BasicDBObject(), new BasicDBObject("$unset", new BasicDBObject(this.schema.getBinaryDataFieldName(), 1)), false, true);
+        collection.update(new BasicDBObject(), new BasicDBObject("$unset", new BasicDBObject("Files", 1)), false, true);
 
         //actualisation of table in browser
         this.schema = loadSchema(schema.getId(), selectedDB);
-    }
-
-    private boolean checkConstraintValidation(String selectedDB) {
-        //first we will obtain DBCursor for records in filingCabinet
-        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
-        DBCursor cursor = filingCabinet.find();
-
-        //first we will obtain schemaField which is not edited so far - it is exactly like in the db - it is in schema property of this class
-        SchemaField fieldToEditInDB = new SchemaField();
-        for (SchemaField field : schema.getFields()) {
-            //we will find it by ID
-            if (field.getId().equals(schemaFieldToEdit.getId())) {
-                fieldToEditInDB = field;
-            }
-        }
-        
-        //resource budnle for l10n
-        FacesContext ctx = FacesContext.getCurrentInstance();
-        Locale locale = ctx.getViewRoot().getLocale();
-        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
-
-        while (cursor.hasNext()) {
-            BasicDBObject record = (BasicDBObject) cursor.next();
-            //name of the field to be changed
-            String schemaFieldName = fieldToEditInDB.getFieldTitle();
-            BasicDBList data = (BasicDBList) record.get(schemaFieldName);
-            //we have to check if we changed not mandatory to mandatory
-            if (!fieldToEditInDB.isMandatory() && schemaFieldToEdit.isMandatory()) {
-                if (!validMandatory(data)) {
-                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("mandatoryViolationMessage"), null));
-                    return false;
-                }
-            }
-
-            //if we changed constraint - we have to check also the constraint
-            if (!fieldToEditInDB.getConstraint().equals(schemaFieldToEdit.getConstraint())) {
-                //File cannot be changed (it is forced on page) so we might have only changed True/False, Numbers, Numbers and letters, Letters, Regex to something from these options
-                if (!validConstraint(data, schemaFieldToEdit.getConstraint())) {
-                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("constraintViolationMessage"), null));
-                    return false;
-                }
-            }
-
-            //if we changed repeatable to non-repeatable
-            if (fieldToEditInDB.isRepeatable() && !schemaFieldToEdit.isRepeatable()) {
-                //we have to check on the size of each data list
-                if (!validNonRepeatable(data)) {
-                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("repeatableViolationMessage"), null));
-                    return false;
-                }
-            }
-        }
-        //if validation is ok at every point, we reach this statement
-        return true;
-    }
-
-    private boolean validMandatory(BasicDBList list) {
-        //if list is null - the field is missing in DB - so it is violation of constraint
-        if (list == null) {
-            return false;
-        }
-        //if field is there, but it is empty - still violation of constraint
-        if (list.isEmpty()) {
-            return false;
-        }
-
-        for (Object object : list) {
-            BasicDBObject record = (BasicDBObject) object;
-            String value = record.getString("value");
-            //if one of the values is empty - it is constraint violation
-            if (value.isEmpty()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean validConstraint(BasicDBList list, String constraint) {
-        //if list is empty or it is not present - it is ok, it is valid according to any constraint
-        if (list == null) {
-            return true;
-        }
-        if (list.isEmpty()) {
-            return true;
-        }
-        //if we have data - we have to choose validator
-        Validator validator;
-        switch (constraint) {
-            case "Numbers":
-                validator = new NumberValidator();
-                break;
-            case "Letters":
-                validator = new LetterValidator();
-                break;
-            case "Numbers and letters":
-                validator = new NumberAndLetterValidator();
-                break;
-            case "True/False":
-                validator = new TrueFalseValidator();
-                break;
-            default:
-                validator = new RegexValidator(constraint);
-                break;
-        }
-        for (Object object : list) {
-            BasicDBObject record = (BasicDBObject) object;
-            String value = record.getString("value");
-            //if one of the values is not valid - it is constraint violation
-            if (!validator.validate(value)) {
-                return false;
-            }
-        }
-        //if everything is ok, return true
-        return true;
-    }
-
-    private boolean validNonRepeatable(BasicDBList list) {
-        //if list is null or there are only 0 or 1 values - it is ok, because it is still non repeatable
-        if (list == null) {
-            return true;
-        }
-        if (list.size() < 2) {
-            return true;
-        }
-
-        return false;
     }
 
     public DBUtils getDbUtils() {
@@ -672,6 +503,157 @@ public class SchemaManagerBean implements Serializable {
     public void setNewBinaryDataFieldName(String newBinaryDataFieldName) {
         this.newBinaryDataFieldName = newBinaryDataFieldName;
     }
+    
+    private boolean validateRegex(String regex) {
+        try {
+            Pattern.compile(regex);
+            return true;
+        } catch (PatternSyntaxException ex) {
+            return false;
+        }
+    }
+
+    private List<Map.Entry<ObjectId, String>> getSchemaFieldsIdName() {
+        List<SchemaField> fields = this.schema.getFields();
+
+        List<Entry<ObjectId, String>> result = new ArrayList<>();
+        for (SchemaField field : fields) {
+            result.add(new AbstractMap.SimpleEntry<>(field.getId(), field.getFieldTitle()));
+        }
+
+        return result;
+    }
+
+    private boolean checkConstraintValidation(String selectedDB) {
+        //first we will obtain DBCursor for records in filingCabinet
+        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        DBCursor cursor = filingCabinet.find();
+
+        //first we will obtain schemaField which is not edited so far - it is exactly like in the db - it is in schema property of this class
+        SchemaField fieldToEditInDB = new SchemaField();
+        for (SchemaField field : schema.getFields()) {
+            //we will find it by ID
+            if (field.getId().equals(schemaFieldToEdit.getId())) {
+                fieldToEditInDB = field;
+            }
+        }
+        
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
+
+        while (cursor.hasNext()) {
+            BasicDBObject record = (BasicDBObject) cursor.next();
+            //name of the field to be changed
+            String schemaFieldName = fieldToEditInDB.getFieldTitle();
+            BasicDBList data = (BasicDBList) record.get(schemaFieldName);
+            //we have to check if we changed not mandatory to mandatory
+            if (!fieldToEditInDB.isMandatory() && schemaFieldToEdit.isMandatory()) {
+                if (!validMandatory(data)) {
+                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("mandatoryViolationMessage"), null));
+                    return false;
+                }
+            }
+
+            String oldConstraint = fieldToEditInDB.getConstraint();
+            String newConstraint = schemaFieldToEdit.getConstraint();
+            //if we changed type of constraint - we have to check also the constraint
+            //if we didnt changed type of constraint but changed the regex - we have to check it also
+            if (!oldConstraint.equals(newConstraint) 
+                    || 
+                    (oldConstraint.equals(newConstraint) && !fieldToEditInDB.getRegex().equals(schemaFieldToEdit.getRegex()))) {
+                //File cannot be changed (it is forced on page) so we might have only changed True/False, Numbers, Numbers and letters, Letters, Regex to something from these options
+                if (!validConstraint(data, newConstraint, schemaFieldToEdit.getRegex())) {
+                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("constraintViolationMessage"), null));
+                    return false;
+                }
+            }
+
+            //if we changed repeatable to non-repeatable
+            if (fieldToEditInDB.isRepeatable() && !schemaFieldToEdit.isRepeatable()) {
+                //we have to check on the size of each data list
+                if (!validNonRepeatable(data)) {
+                    ctx.addMessage("schemaFieldTitleMessageAdd", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("repeatableViolationMessage"), null));
+                    return false;
+                }
+            }
+        }
+        //if validation is ok at every point, we reach this statement
+        return true;
+    }
+
+    private boolean validMandatory(BasicDBList list) {
+        //if list is null - the field is missing in DB - so it is violation of constraint
+        if (list == null) {
+            return false;
+        }
+        //if field is there, but it is empty - still violation of constraint
+        if (list.isEmpty()) {
+            return false;
+        }
+
+        for (Object object : list) {
+            BasicDBObject record = (BasicDBObject) object;
+            String value = record.getString("value");
+            //if one of the values is empty - it is constraint violation
+            if (value.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean validConstraint(BasicDBList list, String constraint, String regex) {
+        //if list is empty or it is not present - it is ok, it is valid according to any constraint
+        if (list == null) {
+            return true;
+        }
+        if (list.isEmpty()) {
+            return true;
+        }
+        //if we have data - we have to choose validator
+        Validator validator;
+        switch (constraint) {
+            case "Numbers":
+                validator = new NumberValidator();
+                break;
+            case "Letters":
+                validator = new LetterValidator();
+                break;
+            case "Numbers and letters":
+                validator = new NumberAndLetterValidator();
+                break;
+            case "True/False":
+                validator = new TrueFalseValidator();
+                break;
+            default:
+                validator = new RegexValidator(regex);
+                break;
+        }
+        for (Object object : list) {
+            BasicDBObject record = (BasicDBObject) object;
+            String value = record.getString("value");
+            //if one of the values is not valid - it is constraint violation
+            if (!validator.validate(value)) {
+                return false;
+            }
+        }
+        //if everything is ok, return true
+        return true;
+    }
+
+    private boolean validNonRepeatable(BasicDBList list) {
+        //if list is null or there are only 0 or 1 values - it is ok, because it is still non repeatable
+        if (list == null) {
+            return true;
+        }
+        if (list.size() < 2) {
+            return true;
+        }
+
+        return false;
+    }
 
     private boolean invalidSchemaName(String title, List<Map.Entry<ObjectId, String>> schemas, boolean editMode) {
 
@@ -688,6 +670,10 @@ public class SchemaManagerBean implements Serializable {
 
         if (title.equals("")) {
             ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetMustBeNamedMessage"), null));
+            return true;
+            //if name is too long
+        } else if (title.getBytes(Charset.forName("UTF-8")).length > 69){
+            ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetNameTooLong"), null));
             return true;
         } else if (title.contains("$") || title.startsWith("system.")) {
             ctx.addMessage("schemaNameErrorMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, rb.getString("filingCabinetInvalidCharacters"), null));
@@ -711,8 +697,8 @@ public class SchemaManagerBean implements Serializable {
         return false;
     }
 
-    public void removeFilesInDocument(BasicDBObject document, String binaryDataFieldName, String selectedDB) {
-        BasicDBList files = (BasicDBList) document.get(binaryDataFieldName);
+    private void removeFilesInDocument(BasicDBObject document, String selectedDB) {
+        BasicDBList files = (BasicDBList) document.get("Files");
         //if binaryDataField is defined
         if (files != null) {
             //GridFS DB with files

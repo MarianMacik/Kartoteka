@@ -75,7 +75,7 @@ public class FileUploadBean implements Serializable{
             
             BasicDBObject match = new BasicDBObject("_id", actualCard.getId());
             
-            BasicDBObject update = new BasicDBObject(filingCabinetManagerBean.getFilingCabinet().getSchema().getBinaryDataFieldName(), fileId);
+            BasicDBObject update = new BasicDBObject("Files", fileId);
             
             filingCabinet.update(match, new BasicDBObject("$push", update));
             
@@ -101,8 +101,7 @@ public class FileUploadBean implements Serializable{
         
         //match for this card
         BasicDBObject match = new BasicDBObject("_id", actualCard.getId());
-        String binaryDataFieldName = filingCabinetManagerBean.getFilingCabinet().getSchema().getBinaryDataFieldName();
-        BasicDBObject update = new BasicDBObject(binaryDataFieldName, fileId);
+        BasicDBObject update = new BasicDBObject("Files", fileId);
         
         filingCabinet.update(match, new BasicDBObject("$pull", update));
         reloadActualCard();
@@ -149,15 +148,15 @@ public class FileUploadBean implements Serializable{
                 }
             }
             //now we will load binary files with theri IDs - IDs are for deletion
-            List<Map.Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(newActualCard, filingCabinetManagerBean.getFilingCabinet().getSchema().getBinaryDataFieldName(), testBean.getSelectedDB());
+            List<Map.Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(newActualCard, testBean.getSelectedDB());
 
             actualCard = new CabinetCard(newActualCard.getObjectId("_id"), cardData, filesInDB);
 
         }
 
-    private List<Map.Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String binaryDataFieldName, String selectedDB) {
+    private List<Map.Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String selectedDB) {
         Map<ObjectId, StreamedContent> map = new HashMap<>();
-        BasicDBList files = (BasicDBList) cur.get(binaryDataFieldName);
+        BasicDBList files = (BasicDBList) cur.get("Files");
         //if file field is defined
         if (files != null) {
             for (Object file : files) {

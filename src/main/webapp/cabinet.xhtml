@@ -79,7 +79,9 @@
                                         <h:column>
                                             <ul>
                                                 <ui:repeat value="#{cabinetCard.cardData.get(filingCabinetManagerBean.filingCabinet.schema.fields.indexOf(schemaField)).data}" var="data">
-                                                    <li><h:outputText value="#{data.string}"/></li>
+                                                    <li><h:outputText value="#{data.localizedString}" rendered="#{(data.string eq 'True') ||  (data.string eq 'False')}"/>
+                                                        <h:outputText value="#{data.string}" rendered="#{not ((data.string eq 'True') ||  (data.string eq 'False'))}"/>
+                                                    </li>
                                                 </ui:repeat>
                                             </ul>     
                                         </h:column>
@@ -87,7 +89,7 @@
 
 
                                     <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}" style="vertical-align: top">
-                                        <h:column><h:outputText value="#{filingCabinetManagerBean.filingCabinet.schema.binaryDataFieldName}: " style="font-size: 20px;font-weight: bold"/></h:column>
+                                        <h:column><h:outputText value="#{msg['schemaFieldForFilesLabel']}" style="font-size: 20px;font-weight: bold"/></h:column>
                                         <h:column>
                                             <ul>
                                                 <h:dataTable value="#{cabinetCard.files}" var="file">

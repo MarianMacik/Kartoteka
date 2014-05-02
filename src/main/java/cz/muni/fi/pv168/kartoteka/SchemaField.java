@@ -30,16 +30,19 @@ public class SchemaField {
     private boolean mandatory;
 
     private String constraint = new String();
+    
+    private String regex = new String();
 
     private boolean repeatable;
 
     private Validator validator;
 
-    SchemaField(ObjectId id, String fieldTitle, boolean mandatory, String constraint, boolean repeatable, Validator validator) {
+    SchemaField(ObjectId id, String fieldTitle, boolean mandatory, String constraint, String regex, boolean repeatable, Validator validator) {
         this.id = id;
         this.fieldTitle = fieldTitle;
         this.mandatory = mandatory;
         this.constraint = constraint;
+        this.regex = regex;
         this.repeatable = repeatable;
         this.validator = validator;
     }
@@ -52,7 +55,14 @@ public class SchemaField {
         obj.put("_id", id);
         obj.put("fieldTitle", fieldTitle);
         obj.put("mandatory", mandatory);
-        obj.put("constraint", constraint);
+        
+        //if it is regex - we will save to db only regex - it is sufficient
+        if(constraint.equals("Regex")){
+            obj.put("constraint", regex);
+        } else {
+            obj.put("constraint", constraint);
+        }
+        
         obj.put("repeatable", repeatable);
         return obj;
     }
@@ -61,11 +71,18 @@ public class SchemaField {
         id = object.getObjectId("_id");
         fieldTitle = object.getString("fieldTitle");
         mandatory = object.getBoolean("mandatory");
-        constraint = object.getString("constraint");
+        
+        //if it is regex - we will save to constraint Regex and to regex - actual regex from db
+        String dbConstraint = object.getString("constraint");
+        if(!dbConstraint.equals("Numbers") && !dbConstraint.equals("Letters") && !dbConstraint.equals("Numbers and letters") && !dbConstraint.equals("True/False")){
+            constraint = "Regex";
+            regex = dbConstraint;
+        } else {
+            constraint = object.getString("constraint");
+        }
         repeatable = object.getBoolean("repeatable");
 
-        //if it is not True/False - we have to insert validator
-        if (!constraint.equals("File")) {
+        
             switch (constraint) {
                 case "Numbers":
                     validator = new NumberValidator();
@@ -80,10 +97,9 @@ public class SchemaField {
                     validator = new TrueFalseValidator();
                     break;
                 default:
-                    validator = new RegexValidator(constraint);
+                    validator = new RegexValidator(regex);
                     break;
             }
-        }
 
     }
 
@@ -104,6 +120,7 @@ public class SchemaField {
     }
 
     public String getConstraint() {
+        
         return constraint;
     }
 
@@ -111,12 +128,20 @@ public class SchemaField {
         this.constraint = constraint;
     }
     
+    //getter for internationalized version
     public String getMyConstraint() {
         FacesContext ctx = FacesContext.getCurrentInstance();
         Locale locale = ctx.getViewRoot().getLocale();
         ResourceBundle rb = ResourceBundle.getBundle("language", locale);
         
-        return rb.getString("schemaFieldMustBeNamedMessage");
+        if(!constraint.equals("Numbers") && !constraint.equals("Letters") && !constraint.equals("Numbers and letters") && !constraint.equals("True/False"))
+                return regex;
+        
+        if(!constraint.isEmpty() && constraint != null){
+                return rb.getString(constraint);
+        }
+        
+        return "";
     }
 
     public void setMyConstraint(String constraint) {
@@ -147,4 +172,11 @@ public class SchemaField {
         this.validator = validator;
     }
 
+    public String getRegex() {
+        return regex;
+    }
+
+    public void setRegex(String regex) {
+        this.regex = regex;
+    }
 }

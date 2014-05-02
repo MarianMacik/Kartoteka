@@ -108,7 +108,7 @@ public class FilingCabinetManagerBean implements Serializable {
                 }
             }
             //now we will load binary files with theri IDs - IDs are for deletion
-            List<Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(cur, newFilingCabinet.getSchema().getBinaryDataFieldName(), selectedDB);
+            List<Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(cur, selectedDB);
 
             cabinetCards.add(new CabinetCard(cur.getObjectId("_id"), cardData, filesInDB));
 
@@ -203,7 +203,7 @@ public class FilingCabinetManagerBean implements Serializable {
                         } else if (validatorType == ValidatorType.NUMBER_AND_LETTER) {
                             message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeNumberOrLettersMessage");
                         } else if (validatorType == ValidatorType.REGEX) {
-                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("notMatchingRegexMessage");
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("notMatchingRegexMessage") + " " + schemaField.getRegex() + "!";
                         }
 
                         ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
@@ -237,6 +237,11 @@ public class FilingCabinetManagerBean implements Serializable {
 
         String collectionName = filingCabinet.getSchema().getTitle();
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(collectionName);
+        
+        //resource budnle for l10n
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
 
         BasicDBObject update = new BasicDBObject();
         //to indicate if there was a validation error
@@ -249,8 +254,8 @@ public class FilingCabinetManagerBean implements Serializable {
 
             //if it is empty and it is required - then it is validation problem
             if (schemaField.isMandatory() && myStringData.isEmpty()) {
-                message = schemaField.getFieldTitle() + " is required!";
-                FacesContext.getCurrentInstance().addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
+                message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("requiredMessage");
+                ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
                 validationError = true;
             }
 
@@ -262,8 +267,8 @@ public class FilingCabinetManagerBean implements Serializable {
             for (MyString myString : myStringData) {
                 //first - validation of required constraint
                 if (schemaField.isMandatory() && myString.getString().isEmpty() && noRequiredMessageSoFar) { //if validation is unsuccessful
-                    message = schemaField.getFieldTitle() + " is required!";
-                    FacesContext.getCurrentInstance().addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
+                    message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("requiredMessage");
+                    ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
                     validationError = true;
                     noRequiredMessageSoFar = false;
                 }
@@ -274,16 +279,16 @@ public class FilingCabinetManagerBean implements Serializable {
 
                         ValidatorType validatorType = validator.getValidatorType();
                         if (validatorType == ValidatorType.NUMBER) {
-                            message = schemaField.getFieldTitle() + " field has to be number!";
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeNumberMessage");
                         } else if (validatorType == ValidatorType.LETTER) {
-                            message = schemaField.getFieldTitle() + " field has to consist only of letters!";
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeLettersMessage");
                         } else if (validatorType == ValidatorType.NUMBER_AND_LETTER) {
-                            message = schemaField.getFieldTitle() + " field has to consist only of numbers and letters!";
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("mustBeNumberOrLettersMessage");
                         } else if (validatorType == ValidatorType.REGEX) {
-                            message = schemaField.getFieldTitle() + " field does not match regex" + schemaField.getConstraint();
+                            message = rb.getString("fieldLabel") + " " + schemaField.getFieldTitle() + " " + rb.getString("notMatchingRegexMessage") + " " + schemaField.getRegex() + "!";
                         }
 
-                        FacesContext.getCurrentInstance().addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
+                        ctx.addMessage("validationMessage", new FacesMessage(FacesMessage.SEVERITY_WARN, message, null));
                         noValidationMessagesSoFar = false;
                         validationError = true;
                     }
@@ -384,9 +389,9 @@ public class FilingCabinetManagerBean implements Serializable {
         this.editCabinetCard = editCabinetCard;
     }
 
-    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String binaryDataFieldName, String selectedDB) {
+    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String selectedDB) {
         Map<ObjectId, StreamedContent> map = new HashMap<>();
-        BasicDBList files = (BasicDBList) cur.get(binaryDataFieldName);
+        BasicDBList files = (BasicDBList) cur.get("Files");
         //if file field is defined
         if (files != null) {
             for (Object file : files) {

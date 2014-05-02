@@ -6,7 +6,10 @@
 
 package cz.muni.fi.pv168.kartoteka;
 
+import java.util.Locale;
 import java.util.Objects;
+import java.util.ResourceBundle;
+import javax.faces.context.FacesContext;
 import org.bson.types.ObjectId;
 
 /**
@@ -27,6 +30,18 @@ public class MyString {
     public MyString() {
     }
 
+    public String getLocalizedString() {
+        FacesContext ctx = FacesContext.getCurrentInstance();
+        Locale locale = ctx.getViewRoot().getLocale();
+        ResourceBundle rb = ResourceBundle.getBundle("language", locale);
+        
+        if(string.equals("True"))
+            return rb.getString("trueLabel");
+        else{
+            return rb.getString("falseLabel");
+        }
+    }
+    
     public String getString() {
         return string;
     }
