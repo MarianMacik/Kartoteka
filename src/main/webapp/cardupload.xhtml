@@ -30,12 +30,12 @@ and open the template in the editor.
                         </p:commandLink>
                     </h:form>
                 </f:view>
-                <center>
+                <center style="margin: 30px">
                     <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
             </p:layoutUnit>
 
-            <p:layoutUnit position="west" size="250" collapsible="true">
+            <p:layoutUnit position="west" size="260" collapsible="true">
                 <h:form>
                     <center>
                     <h:outputText value="#{authenticationBean.profile.firstName} #{authenticationBean.profile.lastName}"

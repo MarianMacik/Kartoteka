@@ -25,14 +25,14 @@
                         </p:commandLink>
                     </h:form>
                 </f:view>
-                <center>
+                <center style="margin: 30px">
                     <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
                 </p:layoutUnit>
 
 
 
-            <p:layoutUnit position="west" size="250" collapsible="true">
+            <p:layoutUnit position="west" size="260" collapsible="true">
                 <h:form>
                     <center>
                     <h:outputText value="#{authenticationBean.profile.firstName} #{authenticationBean.profile.lastName}"
@@ -70,7 +70,8 @@
                             <p:dataGrid value="#{filingCabinetManagerBean.filingCabinet.filingCabinetData}" var="cabinetCard" paginator="true" columns="1" rows="1" paginatorPosition="both" 
                                         rowsPerPageTemplate="1,2,3,4,5,6,7,8"
                                         currentPageReportTemplate="{startRecord}-{endRecord} #{msg['paginatorPreposition']} {totalRecords}"
-                                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}">
+                                        paginatorTemplate="{CurrentPageReport}  {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                                        emptyMessage="#{msg['noCardsFoundMessage']}">
                                 <p:panel header="" style="padding: 0px !important;">
 
                                     <h:dataTable value="#{filingCabinetManagerBean.filingCabinet.schema.fields}" var="schemaField" style="vertical-align: top">

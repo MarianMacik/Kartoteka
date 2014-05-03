@@ -35,14 +35,14 @@ and open the template in the editor.
                         </p:commandLink>
                     </h:form>
                 </f:view>
-                <center>
+                <center style="margin: 30px">
                     <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
             </p:layoutUnit>
 
 
 
-            <p:layoutUnit position="west" size="250" collapsible="true">
+            <p:layoutUnit position="west" size="260" collapsible="true">
                 <h:form>
                     <center>
                         <h:outputText value="#{authenticationBean.profile.firstName} #{authenticationBean.profile.lastName}"
@@ -76,7 +76,7 @@ and open the template in the editor.
 
                     <p:layoutUnit position="center" style="padding: 0px !important; border: none !important;" size="80">
                         <h:form id="tableForm">
-                            <p:dataTable id="table" value="#{schemaManagerBean.schema.fields}" var="coll">
+                            <p:dataTable id="table" value="#{schemaManagerBean.schema.fields}" var="coll" emptyMessage="#{msg['noSchemaFieldsFoundTableMessage']}">
 
                                 <p:column headerText="#{msg['schemaTitleOfFieldHeader']}" >    				
                                     <h:outputText value="#{coll.fieldTitle}"/>

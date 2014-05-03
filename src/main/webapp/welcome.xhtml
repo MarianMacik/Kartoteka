@@ -16,35 +16,51 @@ and open the template in the editor.
         <h:outputStylesheet name="style.css"/>
     </h:head>
     <h:body>
-        <f:view locale="#{languageBean.localeCode}">
+        <p:layout fullPage="true">
+            <p:layoutUnit id="topPanel" position="north" size="120" resizable="false" closable="false" collapsible="false">
+                <f:view locale="#{languageBean.localeCode}">
                     <h:form styleClass="langBar">
                         <p:commandLink title="English" action="#{languageBean.setLocaleCode('en')}" update="@all">
                             <p:graphicImage library="images" name="en.png" />
                         </p:commandLink>
-                        <p:commandLink title="Slovenčina" action="#{languageBean.setLocaleCode('sk_SK')}" update="@all">
+                        <p:commandLink title="Slovenčina" action="#{languageBean.setLocaleCode('sk')}" update="@all">
                             <p:graphicImage library="images" name="sk.png"/>
                         </p:commandLink>
                     </h:form>
                 </f:view>
-        <center style="margin: 15px"><h2>#{msg['loginRequest']}</h2>
+                <center style="margin: 30px">
+                    <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
+                </center>
 
-            <div style="margin:200px "> 
+            </p:layoutUnit>
 
-                <h:form>
-                    <h:panelGroup rendered="#{empty authenticationBean.profile}" id="socialButtons" >
-                        <h:commandButton id="facebook" action="#{authenticationBean.socialConnect}" image="resources/images/facebook-icon.png">
-                            <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="facebook" />
-                        </h:commandButton>
-                        <br/>
-                        <h:commandButton id="google" action="#{authenticationBean.socialConnect}" image="resources/images/google-icon.png">
-                            <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="google" />
-                        </h:commandButton>
-                    </h:panelGroup>
-                </h:form>
-            </div> 
-        </center>
 
-        
-        
+            <p:layoutUnit position="center" >
+
+                <center style="margin: 15px"><h2>#{msg['loginRequest']}</h2>
+
+                    <div style="margin-top:150px "> 
+
+                        <h:form>
+                            <h:panelGroup rendered="#{empty authenticationBean.profile}" id="socialButtons" >
+                                <h:commandButton title="#{msg['facebookTooltip']}" id="facebook" action="#{authenticationBean.socialConnect}" image="resources/images/facebook-icon.png" >
+                                    <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="facebook" />
+                                </h:commandButton>
+                                <br/>
+                                <h:commandButton title="#{msg['googleTooltip']}" id="google" action="#{authenticationBean.socialConnect}" image="resources/images/google-icon.png">
+                                    <f:setPropertyActionListener target="#{authenticationBean.providerID}" value="google" />
+                                </h:commandButton>
+                            </h:panelGroup>
+                        </h:form>
+                    </div> 
+                    
+                    
+                    <div style="margin-top: 25px"> 
+                        <h:outputText value="*#{msg['logoutAdvice']}*"/>
+                    </div> 
+                </center>
+            </p:layoutUnit>
+
+        </p:layout>
     </h:body>
 </html>

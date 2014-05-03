@@ -23,13 +23,13 @@
                         </p:commandLink>
                     </h:form>
                 </f:view>
-                <center>
+                <center style="margin: 30px">
                     <h1><h:outputText value="#{msg['headTitle']}" styleClass="appTitle"/></h1>
                 </center>
                 
             </p:layoutUnit>
 
-            <p:layoutUnit position="west" size="250" collapsible="true">
+            <p:layoutUnit position="west" size="260" collapsible="true">
                 
                 <h:form>
                     <center>
@@ -41,7 +41,7 @@
                     <h:outputText value="(#{authenticationBean.profile.email})"
                                   styleClass="header"/>
                     </center>
-                    <p:menu styleClass="leftMenu" >
+                    <p:menu styleClass="leftMenu">
                         <p:menuitem value="#{msg['filingCabinetListButton']}" action="index.xhtml?faces-redirect=true" icon="ui-icon-folder-collapsed"/>
                         <p:menuitem value="#{msg['logoutButton']}" action="#{authenticationBean.logOut()}" icon="ui-icon-power"/>
                     </p:menu>
@@ -53,7 +53,7 @@
                     <p:layoutUnit position="center" >
                         <h:form>
                             <p:dataTable value="#{mainManagerBean.schemas}" var="coll" style="border: none !important; width: 780px; table-layout: fixed;
-                                         word-wrap: break-word;">
+                                         word-wrap: break-word;" emptyMessage="#{msg['noCabinetsFoundTableMessage']}">
 
                                 <p:column style="max-width: 90px">    				
                                     <f:facet name="header">#{msg['cabinetsTableNameHeader']}</f:facet>    				

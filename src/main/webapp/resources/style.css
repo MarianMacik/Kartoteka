@@ -46,7 +46,8 @@ and open the template in the editor.
 }
 
 .leftMenu{
-    margin-top: 15px
+    margin-top: 15px;
+    width: 235px !important;
 }
 
 .langBar {
