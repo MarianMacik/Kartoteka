@@ -29,13 +29,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import org.bson.types.ObjectId;
 import org.primefaces.context.RequestContext;
-import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 /**
- *
- * @author Majo
+ * Bean class for handling all actions connected with particular filing cabinet
+ * @author Marián Macik
  */
 @Named
 @SessionScoped
@@ -53,6 +52,12 @@ public class FilingCabinetManagerBean implements Serializable {
 
     private CabinetCard editCabinetCard;
 
+    /**
+     * Method loads filing cabinet - schema together with cards - from DB
+     * @param id - id of schema, when we load schema, we can load also cabinet by schema title
+     * @param selectedDB - actual user DB
+     * @return "cabinet.xhtml?faces-redirect=true" - navigates to page to view the cabinet
+     */
     public String loadFilingCabinetAndShow(ObjectId id, String selectedDB) {
         FilingCabinet newFilingCabinet = new FilingCabinet();
 
@@ -120,6 +125,11 @@ public class FilingCabinetManagerBean implements Serializable {
         return "cabinet.xhtml?faces-redirect=true";
     }
 
+    /**
+     * Method for adding dataField for particluar schema field - when we want to add/edit card
+     * @param index - represents schema field of a card
+     * @param cabinetCard - cabinet card to add it to
+     */
     public void addDataField(int index, CabinetCard cabinetCard) {
         Data data = cabinetCard.getCardData().get(index);
 
@@ -137,6 +147,12 @@ public class FilingCabinetManagerBean implements Serializable {
 
     }
 
+    /**
+     * Method for removing data field from card
+     * @param index - represents schema field of a card
+     * @param cabinetCard - cabinet card to remove it from
+     * @param fieldToRemove - field to remove so we can remove field even in the middle
+     */
     public void removeDataField(int index, CabinetCard cabinetCard, MyString fieldToRemove) {
         Data data = cabinetCard.getCardData().get(index);
 
@@ -152,6 +168,10 @@ public class FilingCabinetManagerBean implements Serializable {
 
     }
 
+    /**
+     * Method for saving new cabinet card to DB
+     * @param selectedDB - actual user DB
+     */
     public void addNewCabinetCard(String selectedDB) {
         String collectionName = filingCabinet.getSchema().getTitle();
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(collectionName);
@@ -232,6 +252,10 @@ public class FilingCabinetManagerBean implements Serializable {
         loadFilingCabinetAndShow(filingCabinet.getSchema().getId(), selectedDB);
     }
 
+    /**
+     * Method for editing cabinet card in DB
+     * @param selectedDB - actual user DB
+     */
     public void editCabinetCard(String selectedDB) {
         //for editation we will use newCabinetCard field
 
@@ -319,6 +343,11 @@ public class FilingCabinetManagerBean implements Serializable {
 
     }
 
+    /**
+     * Method for removing cabinet card from DB - also with binary files
+     * @param card - card to remove
+     * @param selectedDB - actual user DB
+     */
     public void removeCabinetCard(CabinetCard card, String selectedDB) {
         String collectionName = filingCabinet.getSchema().getTitle();
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(collectionName);
@@ -327,13 +356,63 @@ public class FilingCabinetManagerBean implements Serializable {
 
         //First, we have to remove files from GridFS if there are any
         BasicDBObject toRemove = (BasicDBObject) collection.findOne(match);
-        removeFilesInDocument(toRemove, filingCabinet.getSchema().getBinaryDataFieldName(), selectedDB);
+        removeFilesInDocument(toRemove, selectedDB);
         collection.remove(match);
 
         loadFilingCabinetAndShow(filingCabinet.getSchema().getId(), selectedDB);
     }
 
-    public void prepareNewCabinetCard() {
+    public void copyCabinetCardToEdit(CabinetCard card) {
+        editCabinetCard = new CabinetCard(card);
+    }
+
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
+    public DBUtils getDbUtils() {
+        return dbUtils;
+    }
+    
+    public void setDbUtils(DBUtils dbUtils) {
+        this.dbUtils = dbUtils;
+    }
+    
+    public SchemaManagerBean getSchemaManager() {
+        return schemaManager;
+    }
+    
+    public void setSchemaManager(SchemaManagerBean schemaManager) {
+        this.schemaManager = schemaManager;
+    }
+    
+    public FilingCabinet getFilingCabinet() {
+        return filingCabinet;
+    }
+    
+    public void setFilingCabinet(FilingCabinet filingCabinet) {
+        this.filingCabinet = filingCabinet;
+    }
+    
+    public CabinetCard getNewCabinetCard() {
+        return newCabinetCard;
+    }
+    
+    public void setNewCabinetCard(CabinetCard newCabinetCard) {
+        this.newCabinetCard = newCabinetCard;
+    }
+    
+    public CabinetCard getEditCabinetCard() {
+        return editCabinetCard;
+    }
+    
+    public void setEditCabinetCard(CabinetCard editCabinetCard) {
+        this.editCabinetCard = editCabinetCard;
+    }
+//</editor-fold>
+    
+    /**
+     * Method prepares cabinet card so it has appropriate number of fields according to schema
+     * of actual filing cabinet
+     */
+    private void prepareNewCabinetCard() {
         List<SchemaField> fields = filingCabinet.getSchema().getFields();
         this.newCabinetCard = new CabinetCard();
         for (SchemaField schemaField : fields) {
@@ -345,53 +424,15 @@ public class FilingCabinetManagerBean implements Serializable {
         }
     }
 
-    public void copyCabinetCardToEdit(CabinetCard card) {
-        editCabinetCard = new CabinetCard(card);
-    }
-
-    public DBUtils getDbUtils() {
-        return dbUtils;
-    }
-
-    public void setDbUtils(DBUtils dbUtils) {
-        this.dbUtils = dbUtils;
-    }
-
-    public SchemaManagerBean getSchemaManager() {
-        return schemaManager;
-    }
-
-    public void setSchemaManager(SchemaManagerBean schemaManager) {
-        this.schemaManager = schemaManager;
-    }
-
-    public FilingCabinet getFilingCabinet() {
-        return filingCabinet;
-    }
-
-    public void setFilingCabinet(FilingCabinet filingCabinet) {
-        this.filingCabinet = filingCabinet;
-    }
-
-    public CabinetCard getNewCabinetCard() {
-        return newCabinetCard;
-    }
-
-    public void setNewCabinetCard(CabinetCard newCabinetCard) {
-        this.newCabinetCard = newCabinetCard;
-    }
-
-    public CabinetCard getEditCabinetCard() {
-        return editCabinetCard;
-    }
-
-    public void setEditCabinetCard(CabinetCard editCabinetCard) {
-        this.editCabinetCard = editCabinetCard;
-    }
-
-    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String selectedDB) {
+    /**
+     * Method loads binary files from DB for actual card
+     * @param document - object (cabinet card) to load files from
+     * @param selectedDB - actual user DB
+     * @return List of Map entries - ObjectId of binary file and content whihc can be streamed
+     */
+    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject document, String selectedDB) {
         Map<ObjectId, StreamedContent> map = new HashMap<>();
-        BasicDBList files = (BasicDBList) cur.get("Files");
+        BasicDBList files = (BasicDBList) document.get("Files");
         //if file field is defined
         if (files != null) {
             for (Object file : files) {
@@ -417,10 +458,15 @@ public class FilingCabinetManagerBean implements Serializable {
         return result;
     }
     
-    private void removeFilesInDocument(BasicDBObject document, String binaryDataFieldName, String selectedDB) {
-        BasicDBList files = (BasicDBList) document.get(binaryDataFieldName);
+    /**
+     * Method removes binary files from DB for actual card
+     * @param document - object (cabinet card) to delete files from
+     * @param selectedDB - actual user DB
+     */
+    private void removeFilesInDocument(BasicDBObject document, String selectedDB) {
+        BasicDBList files = (BasicDBList) document.get("Files");
         //if binaryDataField is defined
-        if(files != null){
+        if (files != null){
             //GridFS DB with files
             GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
             

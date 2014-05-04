@@ -1,12 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.kartoteka;
 
-import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import javax.annotation.PostConstruct;
@@ -16,8 +9,9 @@ import javax.inject.Named;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 /**
- *
- * @author Majo
+ * Bean class provides connection with DB - one mongoClient for whole app
+ * as advised in MongoDB documentation
+ * @author Marián Macik
  */
 @Named
 @ApplicationScoped
@@ -27,6 +21,9 @@ public class DBUtils {
     
     private MongoClient mongoClient;
     
+    /**
+     * Init method to initialize connection with DB
+     */
     @PostConstruct
     public void init(){
         try {
@@ -38,11 +35,12 @@ public class DBUtils {
     }
     
     public MongoClient getMongoClient(){
-            
-           
             return mongoClient;
     }
     
+    /**
+     * Method for closing connection with DB when app is to be stopped
+     */
     @PreDestroy
     public void closeConnection(){
         mongoClient.close();

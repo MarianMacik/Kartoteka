@@ -1,12 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.kartoteka;
 
-import com.mongodb.BasicDBObject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -15,15 +8,15 @@ import org.bson.types.ObjectId;
 import org.primefaces.model.StreamedContent;
 
 /**
- *
- * @author Majo
+ * Class represents one card in filing cabinet 
+ * @author Marián Macik
  */
 public class CabinetCard {
     
     private ObjectId id;
     
     private List<Data> cardData = new ArrayList<>();
-
+    //references on binary files
     private List<Entry<ObjectId,StreamedContent>> files = new ArrayList<>();
     
     public CabinetCard() {
@@ -34,7 +27,13 @@ public class CabinetCard {
         this.cardData = data;
         this.files = files;
     }
-    //copy constructor
+    
+    /**
+     * Copy constructor is doing deep copy of the whole object
+     * It is used when we want to edit card in filing cabinet, so we dont change
+     * data in table but only in edit dialog
+     * @param copy - object which we want to copy
+     */
     public CabinetCard(CabinetCard copy){
         List<Data> newCardData = new ArrayList<>();
         
@@ -54,6 +53,8 @@ public class CabinetCard {
         this.cardData = newCardData;
     }
     
+    
+    //<editor-fold defaultstate="collapsed" desc="GETTERS/SETTERS/EQUALS AND HASHCODE">
     public MyString getTest(int index){
         return cardData.get(index).getData().get(0);
     }
@@ -61,15 +62,15 @@ public class CabinetCard {
     public ObjectId getId() {
         return id;
     }
-
+    
     public void setId(ObjectId id) {
         this.id = id;
     }
-
+    
     public List<Data> getCardData() {
         return cardData;
     }
-
+    
     public void setCardData(List<Data> data) {
         this.cardData = data;
     }
@@ -81,7 +82,7 @@ public class CabinetCard {
     public void addMultipleData(){
         this.cardData.add(new MultipleData());
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 7;
@@ -89,15 +90,15 @@ public class CabinetCard {
         hash = 89 * hash + Objects.hashCode(this.cardData);
         return hash;
     }
-
+    
     public List<Entry<ObjectId,StreamedContent>> getFiles() {
         return files;
     }
-
+    
     public void setFiles(List<Entry<ObjectId,StreamedContent>> files) {
         this.files = files;
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -115,6 +116,7 @@ public class CabinetCard {
         }
         return true;
     }
+//</editor-fold>
     
     
 }

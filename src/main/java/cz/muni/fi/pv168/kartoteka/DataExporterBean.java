@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.kartoteka;
 
 import com.mongodb.BasicDBObject;
@@ -20,8 +14,8 @@ import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
 
 /**
- *
- * @author Majo
+ * Class for exporting data of one filing cabinet
+ * @author Marián Macik
  */
 
 @Named
@@ -37,12 +31,16 @@ public class DataExporterBean implements Serializable{
         
     }
 
+    /**
+     * Method prepares file for export - output file is json serialization
+     * of documents in particular collection which represents filing cabinet
+     * @param nameOfCollection - collection to export
+     * @param selectedDB - DB in which the collection is
+     */
     public void prepareDownload(String nameOfCollection, String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(nameOfCollection);
         
-        BufferedWriter bw = null;
-        
-        //filename is user(or selectedDB it is the same)_nameOfCollection.json
+        //filename is selectedDB_nameOfCollection.json
         String filename = selectedDB + "_" + nameOfCollection + ".json";
         
         StringBuilder sb = new StringBuilder();
@@ -54,24 +52,26 @@ public class DataExporterBean implements Serializable{
             sb.append(System.lineSeparator());
         }
         InputStream is = new ByteArrayInputStream(sb.toString().getBytes());
+        //no need for closing InputStream - primefaces will close it according to documentation
         this.fileToExport = new DefaultStreamedContent(is, "text", filename);
-        
         
     }
     
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     public DBUtils getDbUtils() {
         return dbUtils;
     }
-
+    
     public void setDbUtils(DBUtils dbUtils) {
         this.dbUtils = dbUtils;
     }
-
+    
     public StreamedContent getFile() {
         return fileToExport;
     }
-
+    
     public void setFile(StreamedContent file) {
         this.fileToExport = file;
     }
+//</editor-fold>
 }

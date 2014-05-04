@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cz.muni.fi.pv168.kartoteka;
 
 import java.io.IOException;
@@ -25,6 +20,10 @@ import org.brickred.socialauth.SocialAuthManager;
 import org.brickred.socialauth.exception.UserDeniedPermissionException;
 import org.brickred.socialauth.util.SocialAuthUtil;
 
+/**
+ * Bean class responsible for user authentication
+ * @author Marián Macik
+ */
 @Named
 @SessionScoped
 public class AuthenticationBean implements Serializable {
@@ -42,27 +41,27 @@ public class AuthenticationBean implements Serializable {
     public AuthenticationBean() {
     }
 
+    /**
+     * Method responsible for actual authentication with chosen provider
+     *
+     * @throws Exception - if there is a problem with redirecting or problem
+     * with loading the properties, but it should not happen
+     */
     public void socialConnect() throws Exception {
-        // Put your keys and secrets from the providers here 
         Properties props = System.getProperties();
-        String FACEBOOK_APP_ID = "672049939523091";
-        String FACEBOOK_APP_SECRET = "031990dbcc5d28705901d5f9db0777d1";
+        Properties myconf = new Properties();
 
-        String GOOGLE_ID = "668977671514-museeg57hpglh6p812cneqgfl5ut033s.apps.googleusercontent.com";
-        String GOOGLE_SECRET = "x6SjfTpLd7UUFivLJO9IksHx";
+        myconf.load(AuthenticationBean.class.getResourceAsStream("/authenticationData.properties"));
 
         if ("facebook".equals(providerID)) {
-            props.put("graph.facebook.com.consumer_key", FACEBOOK_APP_ID);
-            props.put("graph.facebook.com.consumer_secret", FACEBOOK_APP_SECRET);
+            props.put("graph.facebook.com.consumer_key", myconf.getProperty("FACEBOOK_APP_ID"));
+            props.put("graph.facebook.com.consumer_secret", myconf.getProperty("FACEBOOK_APP_SECRET"));
             props.put("graph.facebook.com.custom_permissions", "email");
         } else {
-            props.put("www.google.com.consumer_key", GOOGLE_ID);
-            props.put("www.google.com.consumer_secret", GOOGLE_SECRET);
+            props.put("www.google.com.consumer_key", myconf.getProperty("GOOGLE_ID"));
+            props.put("www.google.com.consumer_secret", myconf.getProperty("GOOGLE_SECRET"));
         }
 
-        // Define your custom permission if needed
-        //props.put("graph.facebook.com.custom_permissions", "publish_stream,email,user_birthday,user_location,offline_access");
-        //props.put("googleapis.com.custom_permissions", "https://www.googleapis.com/auth/userinfo.profile,profile,email");
         // Initiate required components
         SocialAuthConfig config = new SocialAuthConfig();
         config.load(props);
@@ -80,6 +79,12 @@ public class AuthenticationBean implements Serializable {
         System.out.println(authenticationURL);
     }
 
+    /**
+     * Method pulls user info so we can process it - hash it to determine user
+     * database
+     *
+     * @throws IOException - if there is a problem with redirecting
+     */
     public void pullUserInfo() throws IOException {
         try {
             // Pull user's data from the provider
@@ -90,12 +95,9 @@ public class AuthenticationBean implements Serializable {
                 AuthProvider provider = manager.connect(map);
                 this.profile = provider.getUserProfile();
 
-                // Do what you want with the data (e.g. persist to the database, etc.)
-                System.out.println("User's Social profile: " + profile);
-
-                // Redirect the user back to where they have been before logging in
+                // Redirect the user back to main page
                 FacesContext.getCurrentInstance().getExternalContext().redirect(INDEX_URL);
-                
+
                 String selectedDB = hashUserInfo();
                 System.out.println(selectedDB);
                 this.mainBean.setSelectedDB(selectedDB);
@@ -110,6 +112,9 @@ public class AuthenticationBean implements Serializable {
         }
     }
 
+    /**
+     * Method log outs the user from app
+     */
     public void logOut() {
         try {
             // Disconnect from the provider
@@ -122,7 +127,6 @@ public class AuthenticationBean implements Serializable {
 
             // Invalidate session
             ExternalContext externalContext = FacesContext.getCurrentInstance().getExternalContext();
-            HttpServletRequest request = (HttpServletRequest) externalContext.getRequest();
             externalContext.invalidateSession();
 
             if (providerID.equals("facebook")) {
@@ -132,8 +136,6 @@ public class AuthenticationBean implements Serializable {
                 FacesContext.getCurrentInstance().getExternalContext().redirect(externalContext.getRequestContextPath() + "/welcome.xhtml");
             }
 
-            // Redirect to home page
-            //FacesContext.getCurrentInstance().getExternalContext().redirect(externalContext.getRequestContextPath() + "/home.xhtml");
         } catch (IOException ex) {
             System.out.println("AuthenticationBean - IOException: " + ex.toString());
         }
@@ -147,7 +149,6 @@ public class AuthenticationBean implements Serializable {
 
         byte byteData[] = md.digest();
 
-        //convert the byte to hex format method 2
         StringBuilder hexString = new StringBuilder();
         for (int i = 0; i < byteData.length; i++) {
             String hex = Integer.toHexString(0xff & byteData[i]);
@@ -159,6 +160,7 @@ public class AuthenticationBean implements Serializable {
         return hexString.toString();
     }
 
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     // Getters and Setters
     public SocialAuthManager getManager() {
         return manager;
@@ -183,5 +185,6 @@ public class AuthenticationBean implements Serializable {
     public void setProfile(Profile profile) {
         this.profile = profile;
     }
+//</editor-fold>
 
 }

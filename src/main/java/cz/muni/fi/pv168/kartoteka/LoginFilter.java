@@ -11,6 +11,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Servlet filter which controls if user is authenticated, if not, user is redirected
+ * to welcome page. Secondly it forces browser not to cache previous pages so user cannot
+ * go back after logout.
+ * @author Marián Macik
+ */
 public class LoginFilter implements Filter {
 
     @Inject
@@ -18,6 +24,9 @@ public class LoginFilter implements Filter {
 
     /**
      * Checks if user is logged in. If not it redirects to the login.xhtml page.
+     * @param chain FilterChain
+     * @param request Servlet request
+     * @param response Servlet response
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

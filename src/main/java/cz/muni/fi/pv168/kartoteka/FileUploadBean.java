@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.kartoteka;
 
 import com.mongodb.BasicDBList;
@@ -23,19 +17,17 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.context.SessionScoped;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.bson.types.ObjectId;
 import org.primefaces.event.FileUploadEvent;
 import org.primefaces.model.DefaultStreamedContent;
 import org.primefaces.model.StreamedContent;
-import org.primefaces.model.UploadedFile;
 
 /**
- *
- * @author Majo
+ * Bean class that handles uploading and deleting binary files from
+ * actually selected card
+ * @author Marián Macik
  */
 @Named
 @SessionScoped
@@ -55,6 +47,10 @@ public class FileUploadBean implements Serializable{
     public FileUploadBean() {
     }
 
+    /**
+     * Method for uploading selected the file to DB
+     * @param event - represents event that triggers the file upload
+     */
     public void uploadFile(FileUploadEvent event){
         System.out.println(event.getFile().getFileName());
         
@@ -88,6 +84,10 @@ public class FileUploadBean implements Serializable{
         reloadActualCard();
     }
     
+    /**
+     * Method deletes binary file from DB.
+     * @param fileId - reference on binary file in DB
+     */
     public void deleteFile(ObjectId fileId){
         //first we will delete it from GridFS
         String selectedDB = testBean.getSelectedDB();
@@ -107,6 +107,9 @@ public class FileUploadBean implements Serializable{
         reloadActualCard();
     }
     
+    /**
+     * Method reloads actual card after file has been uploaded/deleted
+     */
     private void reloadActualCard(){
         String collectionName = filingCabinetManagerBean.getFilingCabinet().getSchema().getTitle();
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(testBean.getSelectedDB()).getCollection(collectionName);
@@ -154,6 +157,12 @@ public class FileUploadBean implements Serializable{
 
         }
 
+    /**
+     * Method loads binary files from DB for actual card
+     * @param cur - object (cabinet card) to load files from
+     * @param selectedDB - actual user DB
+     * @return List of Map entries - ObjectId of binary file and content whihc can be streamed
+     */
     private List<Map.Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject cur, String selectedDB) {
         Map<ObjectId, StreamedContent> map = new HashMap<>();
         BasicDBList files = (BasicDBList) cur.get("Files");
@@ -163,7 +172,7 @@ public class FileUploadBean implements Serializable{
                 ObjectId fileId = (ObjectId) file;
                 GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
                 GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
-                //no need for closing InputStream - primefaces will close it accordint to documentation
+                //no need for closing InputStream - primefaces will close it according to documentation
                 StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());
                 map.put(fileId, fileContent);
             }
@@ -182,6 +191,7 @@ public class FileUploadBean implements Serializable{
         return result;
     }
     
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     public String setCabinetCardAndShow(CabinetCard card){
         actualCard = card;
         return "cardupload.xhtml?faces-redirect=true";
@@ -190,17 +200,18 @@ public class FileUploadBean implements Serializable{
     public DBUtils getDbUtils() {
         return dbUtils;
     }
-
+    
     public void setDbUtils(DBUtils dbUtils) {
         this.dbUtils = dbUtils;
     }
-
+    
     public CabinetCard getActualCard() {
         return actualCard;
     }
-
+    
     public void setActualCard(CabinetCard actualCard) {
         this.actualCard = actualCard;
     }
+//</editor-fold>
 
 }
