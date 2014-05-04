@@ -246,6 +246,7 @@ public class IntegrationTest {
             addFieldButton.click();
         }
         //now the message should be shown
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='Schema field must be unique!']")));
         mustBeUniqueMessage = driver.findElement(By.xpath("//span[text()='Schema field must be unique!']"));
         assertEquals("Schema field must be unique!", mustBeUniqueMessage.getText());
         
