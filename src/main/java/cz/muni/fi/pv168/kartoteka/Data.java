@@ -15,6 +15,10 @@ public abstract class Data {
     
     public abstract List<MyString> getData();
     
+    /**
+     * Method to determine if it is MultipleData object or SimpleData object.
+     * @return true if MultipleData, false if SimpleData
+     */
     public abstract boolean isRepeatable();
 
 }

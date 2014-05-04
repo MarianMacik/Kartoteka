@@ -1,12 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.kartoteka;
 
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
@@ -17,28 +10,29 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 import javax.inject.Named;
 import org.bson.types.ObjectId;
 
 /**
- *
- * @author Majo
+ * Bean class for handling the list of user schemas, it also handles logged user DB
+ * @author Marián Macik
  */
 @Named
 @SessionScoped
 public class MainManagerBean implements Serializable{
-    private String selectedDB = "test";
+    private String selectedDB;
     
     private List<Entry<ObjectId,String>> schemas = new ArrayList<>();
     
     @Inject
     private DBUtils dbUtils;
     
+    /**
+     * Loads the list of schemas currently own by logged in user.
+     * @return null - it refreshes the page via JSF
+     */
     public String loadUserSchemas(){
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         
@@ -69,28 +63,30 @@ public class MainManagerBean implements Serializable{
         return null;
     }
     
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     public String getSelectedDB() {
         return selectedDB;
     }
-
+    
     public void setSelectedDB(String selectedDB) {
         this.selectedDB = selectedDB;
     }
-
+    
     public List<Entry<ObjectId, String>> getSchemas() {
         return schemas;
     }
-
+    
     public void setSchemas(List<Entry<ObjectId, String>> schemas) {
         this.schemas = schemas;
     }
-
+    
     public DBUtils getDbUtils() {
         return dbUtils;
     }
-
+    
     public void setDbUtils(DBUtils dbUtils) {
         this.dbUtils = dbUtils;
     }
+//</editor-fold>
 
 }

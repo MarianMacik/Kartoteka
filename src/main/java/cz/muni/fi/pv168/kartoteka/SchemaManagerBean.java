@@ -1,16 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cz.muni.fi.pv168.kartoteka;
 
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import cz.muni.fi.pv168.validator.LetterValidator;
 import cz.muni.fi.pv168.validator.NumberAndLetterValidator;
@@ -28,7 +21,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ResourceBundle;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -42,8 +34,8 @@ import org.bson.types.ObjectId;
 import org.primefaces.context.RequestContext;
 
 /**
- *
- * @author Majo
+ * Bean class for managing everything connected with actual Schema of filing cabinet.
+ * @author Marián Macik
  */
 @Named
 @SessionScoped
@@ -64,6 +56,12 @@ public class SchemaManagerBean implements Serializable {
 
     private String newBinaryDataFieldName;
 
+    /**
+     * Method for loading schema from DB.
+     * @param schemaId - id of the schema in DB
+     * @param selectedDB - actual user DB
+     * @return loaded Schema
+     */
     public Schema loadSchema(ObjectId schemaId, String selectedDB) {
         Schema newSchema = new Schema();
 
@@ -93,6 +91,12 @@ public class SchemaManagerBean implements Serializable {
         return newSchema;
     }
 
+    /**
+     * Method for loading schema and navigating browser to show it
+     * @param id - id of the schema
+     * @param selectedDB - actual user DB
+     * @return page to navigate to
+     */
     public String setSchemaAndShow(ObjectId id, String selectedDB) {
         this.schema = loadSchema(id, selectedDB);
         //if user forgot to finish editing - on next load it is not in edit mode
@@ -100,6 +104,11 @@ public class SchemaManagerBean implements Serializable {
         return "schema.xhtml?faces-redirect=true";
     }
 
+    /**
+     * Method for adding schema field to actual schema.
+     * @param selectedDB - actual user DB
+     * @return null to tell the browser to stay on the page
+     */
     public String addSchemaField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
@@ -180,6 +189,11 @@ public class SchemaManagerBean implements Serializable {
         return null;
     }
 
+    /**
+     * Method for updating schema field.
+     * @param selectedDB - actual user DB
+     * @return null to tell the browser to stay on the page
+     */
     public String editSchemaField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
@@ -284,6 +298,12 @@ public class SchemaManagerBean implements Serializable {
         return null;
     }
 
+    /**
+     * Method for removing schema field from actual schema.
+     * @param field - field to remove
+     * @param selectedDB - actual user DB
+     * @return null to tell the browser to stay on the page
+     */
     public String removeSchemaField(SchemaField field, String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         //Match for concrete schema
@@ -305,6 +325,12 @@ public class SchemaManagerBean implements Serializable {
         return null;
     }
 
+    /**
+     * Method for adding schema to DB.
+     * @param schemas - current schemas - ther ids and names - we use it to determine
+     * if schema with such name already exists or not
+     * @param selectedDB - actual user DB
+     */
     public void addSchema(List<Entry<ObjectId, String>> schemas, String selectedDB) {
 
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
@@ -328,6 +354,11 @@ public class SchemaManagerBean implements Serializable {
 
     }
 
+    /**
+     * Method for removing whole schema - it removes also whole associated filing cabinet of course.
+     * @param schemaToRemove - schema/filing cabinet to remove
+     * @param selectedDB - actual user DB
+     */
     public void removeSchema(Map.Entry<ObjectId, String> schemaToRemove, String selectedDB) {
 
         //first, we get the schema
@@ -359,6 +390,12 @@ public class SchemaManagerBean implements Serializable {
         collection.remove(match);
     }
 
+    /**
+     * Method for updating schema name.
+     * @param schemas - current schemas - ther ids and names - we use it to determine
+     * if schema with such name already exists or not
+     * @param selectedDB - actual user DB
+     */
     public void updateSchemaName(List<Map.Entry<ObjectId, String>> schemas, String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
 
@@ -397,11 +434,20 @@ public class SchemaManagerBean implements Serializable {
         schemaNameEditMode = false;
     }
 
+    /**
+     * Method to create a deep copy of schema field which is to be modified. So user won't see
+     * changes in table, only in dialog.
+     * @param field - field to copy
+     */
     public void copySchemaFieldToEdit(SchemaField field) {
         schemaFieldToEdit = new SchemaField(field.getId(), field.getFieldTitle(), field.isMandatory(), field.getConstraint(), field.getRegex(), field.isRepeatable(), field.getValidator());
         System.out.println("nieco");
     }
 
+    /**
+     * Method for setting field for binary data.
+     * @param selectedDB - actual user DB
+     */
     public void setSchemaBinaryDataField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
@@ -428,6 +474,11 @@ public class SchemaManagerBean implements Serializable {
 
     }
 
+    /**
+     * Method for unsetting field for binary data - it also deletes any binary files
+     * on the cards with this field.
+     * @param selectedDB - actual user DB
+     */
     public void removeSchemaBinaryDataField(String selectedDB) {
         DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
         //Match for concrete schema
@@ -452,58 +503,65 @@ public class SchemaManagerBean implements Serializable {
         this.schema = loadSchema(schema.getId(), selectedDB);
     }
 
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     public DBUtils getDbUtils() {
         return dbUtils;
     }
-
+    
     public void setDbUtils(DBUtils dbUtils) {
         this.dbUtils = dbUtils;
     }
-
+    
     public Schema getSchema() {
         return schema;
     }
-
+    
     public void setSchema(Schema schema) {
         this.schema = schema;
     }
-
+    
     public SchemaField getNewSchemaField() {
         return newSchemaField;
     }
-
+    
     public void setNewSchemaField(SchemaField newSchemaField) {
         this.newSchemaField = newSchemaField;
     }
-
+    
     public Schema getNewSchemaToAdd() {
         return newSchemaToAdd;
     }
-
+    
     public void setNewSchemaToAdd(Schema newSchemaToAdd) {
         this.newSchemaToAdd = newSchemaToAdd;
     }
-
+    
     public SchemaField getSchemaFieldToEdit() {
         return schemaFieldToEdit;
     }
-
+    
     public boolean isSchemaNameEditMode() {
         return schemaNameEditMode;
     }
-
+    
     public void setSchemaNameEditMode(boolean schemaNameEditMode) {
         this.schemaNameEditMode = schemaNameEditMode;
     }
-
+    
     public String getNewBinaryDataFieldName() {
         return newBinaryDataFieldName;
     }
-
+    
     public void setNewBinaryDataFieldName(String newBinaryDataFieldName) {
         this.newBinaryDataFieldName = newBinaryDataFieldName;
     }
+//</editor-fold>
     
+    /**
+     * Method for regex validation
+     * @param regex - regex to validate
+     * @return true if regex is valid, false otherwise
+     */
     private boolean validateRegex(String regex) {
         try {
             Pattern.compile(regex);
@@ -513,6 +571,11 @@ public class SchemaManagerBean implements Serializable {
         }
     }
 
+    /**
+     * Method to get actual List of schemas - we use it to determine if such schema already exists
+     * or not.
+     * @return list of schemas
+     */
     private List<Map.Entry<ObjectId, String>> getSchemaFieldsIdName() {
         List<SchemaField> fields = this.schema.getFields();
 
@@ -524,6 +587,12 @@ public class SchemaManagerBean implements Serializable {
         return result;
     }
 
+    /**
+     * Method for checking constraint validation - if it was changed for particular field.
+     * Also sets appropriate messages if there is a problem.
+     * @param selectedDB - actual user DB
+     * @return true if everything is ok, false if not
+     */
     private boolean checkConstraintValidation(String selectedDB) {
         //first we will obtain DBCursor for records in filingCabinet
         DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
@@ -583,6 +652,12 @@ public class SchemaManagerBean implements Serializable {
         return true;
     }
 
+    /**
+     * Method checks if every data in the field is present - so it is valid
+     * according to mandatory constraint.
+     * @param list - list of data from DB
+     * @return true if it is ok, false otherwise
+     */
     private boolean validMandatory(BasicDBList list) {
         //if list is null - the field is missing in DB - so it is violation of constraint
         if (list == null) {
@@ -604,6 +679,13 @@ public class SchemaManagerBean implements Serializable {
         return true;
     }
 
+    /**
+     * Method checks if every data in the field is valid accordint to chosen constraint.
+     * @param list - list of data from DB
+     * @param constraint - type of constraint to check
+     * @param regex - regex to use if constraint is Regex
+     * @return true if it is ok, false otherwise
+     */
     private boolean validConstraint(BasicDBList list, String constraint, String regex) {
         //if list is empty or it is not present - it is ok, it is valid according to any constraint
         if (list == null) {
@@ -643,6 +725,12 @@ public class SchemaManagerBean implements Serializable {
         return true;
     }
 
+    /**
+     * Method checks if every data in the field is present only once - so it is valid
+     * according to non repeatable constraint.
+     * @param list - list of data from DB
+     * @return true if it is ok, false otherwise
+     */
     private boolean validNonRepeatable(BasicDBList list) {
         //if list is null or there are only 0 or 1 values - it is ok, because it is still non repeatable
         if (list == null) {
@@ -655,6 +743,13 @@ public class SchemaManagerBean implements Serializable {
         return false;
     }
 
+    /**
+     * Method to control if schema name is valid
+     * @param title - title of schema
+     * @param schemas - list of current schemas
+     * @param editMode - flag to tell if it is in edit mode or 
+     * @return true if it is invalid, false otherwise
+     */
     private boolean invalidSchemaName(String title, List<Map.Entry<ObjectId, String>> schemas, boolean editMode) {
 
         List<String> schemaNames = new ArrayList<>();
@@ -697,6 +792,11 @@ public class SchemaManagerBean implements Serializable {
         return false;
     }
 
+    /**
+     * Method removes binary files from DB for actual card
+     * @param document - object (cabinet card) to delete files from
+     * @param selectedDB - actual user DB
+     */
     private void removeFilesInDocument(BasicDBObject document, String selectedDB) {
         BasicDBList files = (BasicDBList) document.get("Files");
         //if binaryDataField is defined

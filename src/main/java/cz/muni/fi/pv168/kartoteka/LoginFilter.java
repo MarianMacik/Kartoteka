@@ -27,6 +27,8 @@ public class LoginFilter implements Filter {
      * @param chain FilterChain
      * @param request Servlet request
      * @param response Servlet response
+     * @throws java.io.IOException - if there is a problem with redirect
+     * @throws javax.servlet.ServletException - if there is a problem with servlet
      */
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

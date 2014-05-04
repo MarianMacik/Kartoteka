@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package cz.muni.fi.pv168.kartoteka;
 
 import com.mongodb.BasicDBObject;
@@ -18,8 +13,9 @@ import javax.faces.context.FacesContext;
 import org.bson.types.ObjectId;
 
 /**
- *
- * @author Majo
+ * Class represents one schema field of schema. It has title, mandatory constraint, constraint
+ * for content and repeatable constraint.
+ * @author Marián Macik
  */
 public class SchemaField {
 
@@ -28,13 +24,13 @@ public class SchemaField {
     private String fieldTitle = new String();
 
     private boolean mandatory;
-
+    //constraint for content to be saved
     private String constraint = new String();
-    
+    //if constraint is regex then here is the actual regex
     private String regex = new String();
 
     private boolean repeatable;
-
+    //associated validator for constraint
     private Validator validator;
 
     SchemaField(ObjectId id, String fieldTitle, boolean mandatory, String constraint, String regex, boolean repeatable, Validator validator) {
@@ -50,6 +46,10 @@ public class SchemaField {
     SchemaField() {
     }
 
+    /**
+     * Method transforms SchemaField to DB representation.
+     * @return BasicDBObject which represents SchemaField in DB.
+     */
     public BasicDBObject SchemaFieldToDBObject() {
         BasicDBObject obj = new BasicDBObject();
         obj.put("_id", id);
@@ -67,6 +67,10 @@ public class SchemaField {
         return obj;
     }
 
+    /**
+     * Method to transform SchemaField in DB to SchemaField object in memory.
+     * @param object - object in DB to transform
+     */
     public void DBObjectToSchemaField(BasicDBObject object) {
         id = object.getObjectId("_id");
         fieldTitle = object.getString("fieldTitle");
@@ -103,27 +107,28 @@ public class SchemaField {
 
     }
 
+    //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     public String getFieldTitle() {
         return fieldTitle;
     }
-
+    
     public void setFieldTitle(String fieldTitle) {
         this.fieldTitle = fieldTitle;
     }
-
+    
     public boolean isMandatory() {
         return mandatory;
     }
-
+    
     public void setMandatory(boolean mandatory) {
         this.mandatory = mandatory;
     }
-
+    
     public String getConstraint() {
         
         return constraint;
     }
-
+    
     public void setConstraint(String constraint) {
         this.constraint = constraint;
     }
@@ -135,48 +140,49 @@ public class SchemaField {
         ResourceBundle rb = ResourceBundle.getBundle("language", locale);
         
         if(!constraint.equals("Numbers") && !constraint.equals("Letters") && !constraint.equals("Numbers and letters") && !constraint.equals("True/False"))
-                return regex;
+            return regex;
         
         if(!constraint.isEmpty() && constraint != null){
-                return rb.getString(constraint);
+            return rb.getString(constraint);
         }
         
         return "";
     }
-
+    
     public void setMyConstraint(String constraint) {
         this.constraint = constraint;
     }
-
+    
     public ObjectId getId() {
         return id;
     }
-
+    
     public void setId(ObjectId id) {
         this.id = id;
     }
-
+    
     public boolean isRepeatable() {
         return repeatable;
     }
-
+    
     public void setRepeatable(boolean repeatable) {
         this.repeatable = repeatable;
     }
-
+    
     public Validator getValidator() {
         return validator;
     }
-
+    
     public void setValidator(Validator validator) {
         this.validator = validator;
     }
-
+    
     public String getRegex() {
         return regex;
     }
-
+    
     public void setRegex(String regex) {
         this.regex = regex;
     }
+//</editor-fold>
 }

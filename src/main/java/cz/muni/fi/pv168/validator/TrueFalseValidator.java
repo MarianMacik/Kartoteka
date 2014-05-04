@@ -1,12 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.validator;
 
-
+/**
+ * Validator for True/False. It accepts also blank value because
+ * blank value is only controlled when mandatory constraint is set.
+ * @author Marián Macik
+ */
 public class TrueFalseValidator implements Validator {
 
     @Override

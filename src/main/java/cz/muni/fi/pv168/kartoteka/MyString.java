@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package cz.muni.fi.pv168.kartoteka;
 
 import java.util.Locale;
@@ -13,8 +7,10 @@ import javax.faces.context.FacesContext;
 import org.bson.types.ObjectId;
 
 /**
- *
- * @author Majo
+ * Class acts as a wrapper class for String data type because when JSF wants to set
+ * a value to String - it is looking for setter, thus we have to provide getter
+ * and setter.
+ * @author Marián Macik
  */
 public class MyString {
     
@@ -30,6 +26,11 @@ public class MyString {
     public MyString() {
     }
 
+    /**
+     * Method gets localized value of True/False in a card.
+     * It is only used where True/False constraint is selected.
+     * @return appropriate translation of True/False
+     */
     public String getLocalizedString() {
         FacesContext ctx = FacesContext.getCurrentInstance();
         Locale locale = ctx.getViewRoot().getLocale();
@@ -42,22 +43,23 @@ public class MyString {
         }
     }
     
+    //<editor-fold defaultstate="collapsed" desc="GETTERS/SETTERS/EQUALS AND HASHCODE">
     public String getString() {
         return string;
     }
-
+    
     public void setString(String string) {
         this.string = string;
     }
-
+    
     public ObjectId getId() {
         return id;
     }
-
+    
     public void setId(ObjectId id) {
         this.id = id;
     }
-
+    
     @Override
     public int hashCode() {
         int hash = 3;
@@ -65,7 +67,7 @@ public class MyString {
         hash = 73 * hash + Objects.hashCode(this.string);
         return hash;
     }
-
+    
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {
@@ -83,6 +85,7 @@ public class MyString {
         }
         return true;
     }
+//</editor-fold>
     
     
 }

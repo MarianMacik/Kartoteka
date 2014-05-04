@@ -8,6 +8,10 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+/**
+ * 
+ * @author Marián Macik
+ */
 public class IntegrationTest {
 
     private WebDriver driver;
@@ -111,6 +115,9 @@ public class IntegrationTest {
         driver.findElement(By.cssSelector("span.ui-icon.ui-icon-triangle-1-s")).click();
         driver.findElement(By.xpath("//div[@id='j_idt69:constraint_panel']/div/ul/li[3]")).click();
 
+        //force wait becuse test was so quick that element wasnt present
+        Thread.sleep(800);
+        
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
             WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
@@ -120,6 +127,9 @@ public class IntegrationTest {
 
             addFieldButton.click();
         }
+        
+        //force wait becuse test was so quick that element wasnt present
+        Thread.sleep(800);
         //check title
         WebElement schemaFieldTitle = driver.findElement(By.xpath("//td[text()='TestField']"));
         assertEquals("TestField", schemaFieldTitle.getText());
@@ -143,6 +153,7 @@ public class IntegrationTest {
         driver.findElement(By.id("addForm:dataTable:0:j_idt69:0:j_idt72")).sendKeys("Some text");
         driver.findElement(By.id("addForm:j_idt83")).click();
 
+        Thread.sleep(500);
         //check added card - that it has desired field and desired value
         WebElement schemaFieldCardTitle = driver.findElement(By.xpath("//span[text()='TestField:']"));
         assertEquals("TestField:", schemaFieldCardTitle.getText());
@@ -181,7 +192,7 @@ public class IntegrationTest {
 
         //adding filing cabinet named test
         driver.findElement(By.id("j_idt56:j_idt57")).click();
-        WebDriverWait wait = new WebDriverWait(driver, 7);
+        WebDriverWait wait = new WebDriverWait(driver, 10);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt58:schemaNameInput")));
         driver.findElement(By.id("j_idt58:schemaNameInput")).clear();
         driver.findElement(By.id("j_idt58:schemaNameInput")).sendKeys("Test");
@@ -199,6 +210,8 @@ public class IntegrationTest {
         driver.findElement(By.id("j_idt58:j_idt62")).click();
         
         //now the message should be shown
+        //force wait becuse test was so quick that element wasnt present
+        Thread.sleep(800);
         WebElement mustBeUniqueMessage = driver.findElement(By.xpath("//span[text()='Filing cabinet must be unique!']"));
         assertEquals("Filing cabinet must be unique!", mustBeUniqueMessage.getText());
         
@@ -217,6 +230,7 @@ public class IntegrationTest {
         driver.findElement(By.cssSelector("span.ui-icon.ui-icon-triangle-1-s")).click();
         driver.findElement(By.xpath("//div[@id='j_idt69:constraint_panel']/div/ul/li[3]")).click();
 
+        Thread.sleep(800);
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
             WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
@@ -226,9 +240,10 @@ public class IntegrationTest {
 
             addFieldButton.click();
         }
-        
+        Thread.sleep(800);
         //now we will try to add same schema field
         driver.findElement(By.id("tableForm:j_idt57:j_idt58")).click();
+        Thread.sleep(800);
         wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt69:fieldTitle")));
         driver.findElement(By.id("j_idt69:fieldTitle")).clear();
         driver.findElement(By.id("j_idt69:fieldTitle")).sendKeys("TestField");
@@ -236,15 +251,17 @@ public class IntegrationTest {
         driver.findElement(By.cssSelector("span.ui-icon.ui-icon-triangle-1-s")).click();
         driver.findElement(By.xpath("//div[@id='j_idt69:constraint_panel']/div/ul/li[3]")).click();
         
+        Thread.sleep(800);
+        
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
             WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
             addFieldButton.click();
         } catch (org.openqa.selenium.StaleElementReferenceException ex) {
             WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
-
             addFieldButton.click();
         }
+        Thread.sleep(800);
         //now the message should be shown
         wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//span[text()='Schema field must be unique!']")));
         mustBeUniqueMessage = driver.findElement(By.xpath("//span[text()='Schema field must be unique!']"));
@@ -280,11 +297,13 @@ public class IntegrationTest {
         WebElement isRequiredMessage = driver.findElement(By.xpath("//span[text()='Field TestField is required!']"));
         assertEquals("Field TestField is required!", isRequiredMessage.getText());
         
+        Thread.sleep(500);
         //now we try to put number as the value - but we have chosen letters constraint, so it should show the message
         driver.findElement(By.id("addForm:dataTable:0:j_idt69:0:j_idt72")).clear();
         driver.findElement(By.id("addForm:dataTable:0:j_idt69:0:j_idt72")).sendKeys("123");
         driver.findElement(By.id("addForm:j_idt83")).click();
         
+        Thread.sleep(500);
         WebElement constraintMessage = driver.findElement(By.xpath("//span[text()='Field TestField has to consist only of letters!']"));
         assertEquals("Field TestField has to consist only of letters!", constraintMessage.getText());
         

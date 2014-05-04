@@ -76,7 +76,6 @@ public class AuthenticationBean implements Serializable {
         }
 
         FacesContext.getCurrentInstance().getExternalContext().redirect(authenticationURL);
-        System.out.println(authenticationURL);
     }
 
     /**
@@ -99,7 +98,6 @@ public class AuthenticationBean implements Serializable {
                 FacesContext.getCurrentInstance().getExternalContext().redirect(INDEX_URL);
 
                 String selectedDB = hashUserInfo();
-                System.out.println(selectedDB);
                 this.mainBean.setSelectedDB(selectedDB);
 
             } else {
