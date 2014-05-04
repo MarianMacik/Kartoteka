@@ -35,7 +35,7 @@ public class IntegrationTest {
     @Test
     public void testGoogleLogin() throws Exception {
         driver.get(baseUrl + "/Kartoteka");
-        driver.findElement(By.id("j_idt18:google")).click();
+        driver.findElement(By.id("j_idt17:google")).click();
         driver.findElement(By.id("Email")).clear();
         driver.findElement(By.id("Email")).sendKeys("kartoteka.test");
         driver.findElement(By.id("Passwd")).clear();
@@ -58,7 +58,7 @@ public class IntegrationTest {
     @Test
     public void testFacebookLogin() throws Exception {
         driver.get(baseUrl + "/Kartoteka/welcome.xhtml");
-        driver.findElement(By.id("j_idt18:facebook")).click();
+        driver.findElement(By.id("j_idt17:facebook")).click();
         driver.findElement(By.id("email")).clear();
         driver.findElement(By.id("email")).sendKeys("kartoteka.test@gmail.com");
         driver.findElement(By.id("pass")).clear();
@@ -84,7 +84,7 @@ public class IntegrationTest {
     @Test
     public void testCreateFilingCabinetAndCard() throws Exception {
         driver.get(baseUrl + "/Kartoteka/welcome.xhtml");
-        driver.findElement(By.id("j_idt18:google")).click();
+        driver.findElement(By.id("j_idt17:google")).click();
         driver.findElement(By.id("Email")).clear();
         driver.findElement(By.id("Email")).sendKeys("kartoteka.test");
         driver.findElement(By.id("Passwd")).clear();
@@ -106,24 +106,24 @@ public class IntegrationTest {
 
         //now we will add schemaField
         driver.findElement(By.id("j_idt28:j_idt29:0:j_idt38")).click();
-        driver.findElement(By.id("tableForm:j_idt57:j_idt58")).click();
+        driver.findElement(By.id("tableForm:j_idt56:j_idt57")).click();
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt69:fieldTitle")));
-        driver.findElement(By.id("j_idt69:fieldTitle")).clear();
-        driver.findElement(By.id("j_idt69:fieldTitle")).sendKeys("TestField");
-        driver.findElement(By.xpath("//div[@id='j_idt69:mandatory']/div[2]")).click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt68:fieldTitle")));
+        driver.findElement(By.id("j_idt68:fieldTitle")).clear();
+        driver.findElement(By.id("j_idt68:fieldTitle")).sendKeys("TestField");
+        driver.findElement(By.xpath("//div[@id='j_idt68:mandatory']/div[2]")).click();
         driver.findElement(By.cssSelector("span.ui-icon.ui-icon-triangle-1-s")).click();
-        driver.findElement(By.xpath("//div[@id='j_idt69:constraint_panel']/div/ul/li[3]")).click();
+        driver.findElement(By.xpath("//div[@id='j_idt68:constraint_panel']/div/ul/li[3]")).click();
 
         //force wait becuse test was so quick that element wasnt present
         Thread.sleep(800);
         
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
             addFieldButton.click();
         } catch (org.openqa.selenium.StaleElementReferenceException ex) {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
 
             addFieldButton.click();
         }
@@ -134,13 +134,14 @@ public class IntegrationTest {
         WebElement schemaFieldTitle = driver.findElement(By.xpath("//td[text()='TestField']"));
         assertEquals("TestField", schemaFieldTitle.getText());
         //check mandatory
-        WebElement mandatoryTrueImage = driver.findElement(By.xpath("//img[@id='tableForm:table:0:j_idt39']"));
+        Thread.sleep(200);
+        WebElement mandatoryTrueImage = driver.findElement(By.xpath("//img[@id='tableForm:table:0:j_idt38']"));
         assertEquals("http://localhost:8080/Kartoteka/javax.faces.resource/checkBoxTrue.png.xhtml?ln=images", mandatoryTrueImage.getAttribute("src"));
         //check constraint
         WebElement schemaFieldConstraint = driver.findElement(By.xpath("//td[text()='Letters']"));
         assertEquals("Letters", schemaFieldConstraint.getText());
         //check repeatable
-        WebElement constraintFalseImage = driver.findElement(By.xpath("//*[@id=\"tableForm:table:0:j_idt47\"]"));
+        WebElement constraintFalseImage = driver.findElement(By.xpath("//*[@id=\"tableForm:table:0:j_idt46\"]"));
         assertEquals("http://localhost:8080/Kartoteka/javax.faces.resource/checkBoxFalse.png.xhtml?ln=images", constraintFalseImage.getAttribute("src"));
 
         //now we will go to view data section and add a card
@@ -182,7 +183,7 @@ public class IntegrationTest {
     @Test
     public void testCheckMessages() throws Exception {
         driver.get(baseUrl + "/Kartoteka/welcome.xhtml");
-        driver.findElement(By.id("j_idt18:google")).click();
+        driver.findElement(By.id("j_idt17:google")).click();
         driver.findElement(By.id("Email")).clear();
         driver.findElement(By.id("Email")).sendKeys("kartoteka.test");
         driver.findElement(By.id("Passwd")).clear();
@@ -221,44 +222,44 @@ public class IntegrationTest {
         
         //now we will add schemaField
         driver.findElement(By.id("j_idt28:j_idt29:0:j_idt38")).click();
-        driver.findElement(By.id("tableForm:j_idt57:j_idt58")).click();
+        driver.findElement(By.id("tableForm:j_idt56:j_idt57")).click();
 
-        wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt69:fieldTitle")));
-        driver.findElement(By.id("j_idt69:fieldTitle")).clear();
-        driver.findElement(By.id("j_idt69:fieldTitle")).sendKeys("TestField");
-        driver.findElement(By.xpath("//div[@id='j_idt69:mandatory']/div[2]")).click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt68:fieldTitle")));
+        driver.findElement(By.id("j_idt68:fieldTitle")).clear();
+        driver.findElement(By.id("j_idt68:fieldTitle")).sendKeys("TestField");
+        driver.findElement(By.xpath("//div[@id='j_idt68:mandatory']/div[2]")).click();
         driver.findElement(By.cssSelector("span.ui-icon.ui-icon-triangle-1-s")).click();
-        driver.findElement(By.xpath("//div[@id='j_idt69:constraint_panel']/div/ul/li[3]")).click();
+        driver.findElement(By.xpath("//div[@id='j_idt68:constraint_panel']/div/ul/li[3]")).click();
 
         Thread.sleep(800);
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
             addFieldButton.click();
         } catch (org.openqa.selenium.StaleElementReferenceException ex) {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
 
             addFieldButton.click();
         }
         Thread.sleep(800);
         //now we will try to add same schema field
-        driver.findElement(By.id("tableForm:j_idt57:j_idt58")).click();
+        driver.findElement(By.id("tableForm:j_idt56:j_idt57")).click();
         Thread.sleep(800);
-        wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt69:fieldTitle")));
-        driver.findElement(By.id("j_idt69:fieldTitle")).clear();
-        driver.findElement(By.id("j_idt69:fieldTitle")).sendKeys("TestField");
-        driver.findElement(By.xpath("//div[@id='j_idt69:mandatory']/div[2]")).click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("j_idt68:fieldTitle")));
+        driver.findElement(By.id("j_idt68:fieldTitle")).clear();
+        driver.findElement(By.id("j_idt68:fieldTitle")).sendKeys("TestField");
+        driver.findElement(By.xpath("//div[@id='j_idt68:mandatory']/div[2]")).click();
         driver.findElement(By.cssSelector("span.ui-icon.ui-icon-triangle-1-s")).click();
-        driver.findElement(By.xpath("//div[@id='j_idt69:constraint_panel']/div/ul/li[3]")).click();
+        driver.findElement(By.xpath("//div[@id='j_idt68:constraint_panel']/div/ul/li[3]")).click();
         
         Thread.sleep(800);
         
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
             addFieldButton.click();
         } catch (org.openqa.selenium.StaleElementReferenceException ex) {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
             addFieldButton.click();
         }
         Thread.sleep(800);
@@ -268,13 +269,13 @@ public class IntegrationTest {
         assertEquals("Schema field must be unique!", mustBeUniqueMessage.getText());
         
         //now we will try to save schema field with empty name - message should be shown
-        driver.findElement(By.id("j_idt69:fieldTitle")).clear();
+        driver.findElement(By.id("j_idt68:fieldTitle")).clear();
         //we have to "wait" - this is one of official workarounds to wait for element to be present
         try {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
             addFieldButton.click();
         } catch (org.openqa.selenium.StaleElementReferenceException ex) {
-            WebElement addFieldButton = driver.findElement(By.id("j_idt69:j_idt96"));
+            WebElement addFieldButton = driver.findElement(By.id("j_idt68:j_idt95"));
 
             addFieldButton.click();
         }
