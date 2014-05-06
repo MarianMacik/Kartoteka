@@ -1,5 +1,6 @@
 package cz.muni.fi.pv168.kartoteka;
 
+import com.mongodb.DB;
 import com.mongodb.MongoClient;
 import java.net.UnknownHostException;
 import javax.annotation.PostConstruct;
@@ -36,6 +37,10 @@ public class DBUtils {
     
     public MongoClient getMongoClient(){
             return mongoClient;
+    }
+    
+    public DB getDB(){
+        return mongoClient.getDB("db");
     }
     
     /**

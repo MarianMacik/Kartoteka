@@ -22,7 +22,7 @@ import org.bson.types.ObjectId;
 @Named
 @SessionScoped
 public class MainManagerBean implements Serializable{
-    private String selectedDB;
+    private String selectedUser;
     
     private List<Entry<ObjectId,String>> schemas = new ArrayList<>();
     
@@ -34,7 +34,7 @@ public class MainManagerBean implements Serializable{
      * @return null - it refreshes the page via JSF
      */
     public String loadUserSchemas(){
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
         
         DBCursor cursor = collection.find();
         
@@ -65,11 +65,11 @@ public class MainManagerBean implements Serializable{
     
     //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
     public String getSelectedDB() {
-        return selectedDB;
+        return selectedUser;
     }
     
     public void setSelectedDB(String selectedDB) {
-        this.selectedDB = selectedDB;
+        this.selectedUser = selectedDB;
     }
     
     public List<Entry<ObjectId, String>> getSchemas() {

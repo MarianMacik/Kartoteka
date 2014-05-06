@@ -59,13 +59,13 @@ public class SchemaManagerBean implements Serializable {
     /**
      * Method for loading schema from DB.
      * @param schemaId - id of the schema in DB
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      * @return loaded Schema
      */
-    public Schema loadSchema(ObjectId schemaId, String selectedDB) {
+    public Schema loadSchema(ObjectId schemaId, String selectedUser) {
         Schema newSchema = new Schema();
 
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
 
         BasicDBObject object = (BasicDBObject) collection.findOne(new BasicDBObject("_id", schemaId));
 
@@ -94,11 +94,11 @@ public class SchemaManagerBean implements Serializable {
     /**
      * Method for loading schema and navigating browser to show it
      * @param id - id of the schema
-     * @param selectedDB - actual user DB
+     * @param selectedUser - selectedUser user DB
      * @return page to navigate to
      */
-    public String setSchemaAndShow(ObjectId id, String selectedDB) {
-        this.schema = loadSchema(id, selectedDB);
+    public String setSchemaAndShow(ObjectId id, String selectedUser) {
+        this.schema = loadSchema(id, selectedUser);
         //if user forgot to finish editing - on next load it is not in edit mode
         this.schemaNameEditMode = false;
         return "schema.xhtml?faces-redirect=true";
@@ -106,12 +106,12 @@ public class SchemaManagerBean implements Serializable {
 
     /**
      * Method for adding schema field to actual schema.
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      * @return null to tell the browser to stay on the page
      */
-    public String addSchemaField(String selectedDB) {
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
-        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+    public String addSchemaField(String selectedUser) {
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
+        DBCollection filingCabinet = dbUtils.getDB().getCollection(selectedUser + schema.getTitle());
 
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
@@ -178,7 +178,7 @@ public class SchemaManagerBean implements Serializable {
         }
 
         //actualisation of table in browser
-        this.schema = loadSchema(schema.getId(), selectedDB);
+        this.schema = loadSchema(schema.getId(), selectedUser);
 
         //We will erase it, so it is clean for next input
         newSchemaField = new SchemaField();
@@ -191,12 +191,12 @@ public class SchemaManagerBean implements Serializable {
 
     /**
      * Method for updating schema field.
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      * @return null to tell the browser to stay on the page
      */
-    public String editSchemaField(String selectedDB) {
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
-        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+    public String editSchemaField(String selectedUser) {
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
+        DBCollection filingCabinet = dbUtils.getDB().getCollection(selectedUser + schema.getTitle());
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject();
         match.put("_id", this.schema.getId());
@@ -253,7 +253,7 @@ public class SchemaManagerBean implements Serializable {
 
         //Constraint validation - if they are changed, we have to check all the records in db
         //checkConstraintValidation will check all the constraints, if it returns true - everything is OK if false - there is a problem
-        if (!checkConstraintValidation(selectedDB)) {
+        if (!checkConstraintValidation(selectedUser)) {
             return null;
         }
         //update of fieldNames
@@ -290,7 +290,7 @@ public class SchemaManagerBean implements Serializable {
         schemaFieldToEdit = new SchemaField();
 
         //actualisation of table in browser
-        this.schema = loadSchema(schema.getId(), selectedDB);
+        this.schema = loadSchema(schema.getId(), selectedUser);
 
         //Hide the dialog, because submit was succesful
         RequestContext.getCurrentInstance().execute("editSchemaFieldDialog.hide()");
@@ -301,11 +301,11 @@ public class SchemaManagerBean implements Serializable {
     /**
      * Method for removing schema field from actual schema.
      * @param field - field to remove
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      * @return null to tell the browser to stay on the page
      */
-    public String removeSchemaField(SchemaField field, String selectedDB) {
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+    public String removeSchemaField(SchemaField field, String selectedUser) {
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
 
@@ -316,11 +316,11 @@ public class SchemaManagerBean implements Serializable {
         collection.update(match, new BasicDBObject("$pull", update));
 
         //we will also delete all values that are stored under this key in appropriate collection
-        collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        collection = dbUtils.getDB().getCollection(selectedUser + schema.getTitle());
         collection.update(new BasicDBObject(), new BasicDBObject("$unset", new BasicDBObject(field.getFieldTitle(), 1)), false, true);
 
         //actualisation of table in browser
-        this.schema = loadSchema(schema.getId(), selectedDB);
+        this.schema = loadSchema(schema.getId(), selectedUser);
 
         return null;
     }
@@ -329,11 +329,11 @@ public class SchemaManagerBean implements Serializable {
      * Method for adding schema to DB.
      * @param schemas - current schemas - ther ids and names - we use it to determine
      * if schema with such name already exists or not
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      */
-    public void addSchema(List<Entry<ObjectId, String>> schemas, String selectedDB) {
+    public void addSchema(List<Entry<ObjectId, String>> schemas, String selectedUser) {
 
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
 
         if (invalidSchemaName(newSchemaToAdd.getTitle(), schemas, false)) {
             return;
@@ -357,27 +357,27 @@ public class SchemaManagerBean implements Serializable {
     /**
      * Method for removing whole schema - it removes also whole associated filing cabinet of course.
      * @param schemaToRemove - schema/filing cabinet to remove
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      */
-    public void removeSchema(Map.Entry<ObjectId, String> schemaToRemove, String selectedDB) {
+    public void removeSchema(Map.Entry<ObjectId, String> schemaToRemove, String selectedUser) {
 
         //first, we get the schema
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
         BasicDBObject match = new BasicDBObject("_id", schemaToRemove.getKey());
 
-        DBCollection cabinetToDelete = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schemaToRemove.getValue());
+        DBCollection cabinetToDelete = dbUtils.getDB().getCollection(selectedUser + schemaToRemove.getValue());
 
         //First we have to delete files from GridFS
         //if field for binary data is set, we have to delete files from GridFS
         //First we have to load schema to find if binaryDataField is set
-        Schema schema = loadSchema(schemaToRemove.getKey(), selectedDB);
+        Schema schema = loadSchema(schemaToRemove.getKey(), selectedUser);
         String binaryDataFieldName = schema.getBinaryDataFieldName();
         if (binaryDataFieldName != null) {
             //all documents in cabinet
             DBCursor cursor = cabinetToDelete.find();
             while (cursor.hasNext()) {
                 BasicDBObject document = (BasicDBObject) cursor.next();
-                removeFilesInDocument(document, selectedDB);
+                removeFilesInDocument(document, selectedUser);
             }
         }
         //now we will delete whole filing cabinet assigned to this schema
@@ -394,10 +394,10 @@ public class SchemaManagerBean implements Serializable {
      * Method for updating schema name.
      * @param schemas - current schemas - ther ids and names - we use it to determine
      * if schema with such name already exists or not
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      */
-    public void updateSchemaName(List<Map.Entry<ObjectId, String>> schemas, String selectedDB) {
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+    public void updateSchemaName(List<Map.Entry<ObjectId, String>> schemas, String selectedUser) {
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
 
         //schema must be named
         if (invalidSchemaName(this.schema.getTitle(), schemas, true)) {
@@ -424,13 +424,13 @@ public class SchemaManagerBean implements Serializable {
 
         //we will also rename appropriate filing cabinet
         if (!oldSchemaName.equals(this.schema.getTitle())) {
-            DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(oldSchemaName);
+            DBCollection filingCabinet = dbUtils.getDB().getCollection(selectedUser + oldSchemaName);
 
-            if (dbUtils.getMongoClient().getDB(selectedDB).collectionExists(filingCabinet.getName())) {
-                filingCabinet.rename(this.schema.getTitle());
+            if (dbUtils.getDB().collectionExists(filingCabinet.getName())) {
+                filingCabinet.rename(selectedUser + this.schema.getTitle());
             }
         }
-        this.schema = loadSchema(this.schema.getId(), selectedDB);
+        this.schema = loadSchema(this.schema.getId(), selectedUser);
         schemaNameEditMode = false;
     }
 
@@ -441,16 +441,15 @@ public class SchemaManagerBean implements Serializable {
      */
     public void copySchemaFieldToEdit(SchemaField field) {
         schemaFieldToEdit = new SchemaField(field.getId(), field.getFieldTitle(), field.isMandatory(), field.getConstraint(), field.getRegex(), field.isRepeatable(), field.getValidator());
-        System.out.println("nieco");
     }
 
     /**
      * Method for setting field for binary data.
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      */
-    public void setSchemaBinaryDataField(String selectedDB) {
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
-        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+    public void setSchemaBinaryDataField(String selectedUser) {
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
+        DBCollection filingCabinet = dbUtils.getDB().getCollection(selectedUser + schema.getTitle());
 
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
@@ -470,17 +469,17 @@ public class SchemaManagerBean implements Serializable {
         }
 
         //actualisation of table in browser
-        this.schema = loadSchema(schema.getId(), selectedDB);
+        this.schema = loadSchema(schema.getId(), selectedUser);
 
     }
 
     /**
      * Method for unsetting field for binary data - it also deletes any binary files
      * on the cards with this field.
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      */
-    public void removeSchemaBinaryDataField(String selectedDB) {
-        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection("Schemas");
+    public void removeSchemaBinaryDataField(String selectedUser) {
+        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + "Schemas");
         //Match for concrete schema
         BasicDBObject match = new BasicDBObject("_id", this.schema.getId());
 
@@ -489,18 +488,18 @@ public class SchemaManagerBean implements Serializable {
 
         //we will also delete all values that are stored under this key in appropriate collection
         //But first, we have to delete files in GridFS and after that we can delete links (ObjectIds) to them
-        collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        collection = dbUtils.getDB().getCollection(selectedUser + schema.getTitle());
         //all documents in this collection
         DBCursor cursor = collection.find();
         while (cursor.hasNext()) {
             BasicDBObject document = (BasicDBObject) cursor.next();
-            removeFilesInDocument(document, selectedDB);
+            removeFilesInDocument(document, selectedUser);
         }
         //now we can remove field with links (ObjectIds) from documents
         collection.update(new BasicDBObject(), new BasicDBObject("$unset", new BasicDBObject("Files", 1)), false, true);
 
         //actualisation of table in browser
-        this.schema = loadSchema(schema.getId(), selectedDB);
+        this.schema = loadSchema(schema.getId(), selectedUser);
     }
 
     //<editor-fold defaultstate="collapsed" desc="GETTERS AND SETTERS">
@@ -590,12 +589,12 @@ public class SchemaManagerBean implements Serializable {
     /**
      * Method for checking constraint validation - if it was changed for particular field.
      * Also sets appropriate messages if there is a problem.
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      * @return true if everything is ok, false if not
      */
-    private boolean checkConstraintValidation(String selectedDB) {
+    private boolean checkConstraintValidation(String selectedUser) {
         //first we will obtain DBCursor for records in filingCabinet
-        DBCollection filingCabinet = dbUtils.getMongoClient().getDB(selectedDB).getCollection(schema.getTitle());
+        DBCollection filingCabinet = dbUtils.getDB().getCollection(selectedUser + schema.getTitle());
         DBCursor cursor = filingCabinet.find();
 
         //first we will obtain schemaField which is not edited so far - it is exactly like in the db - it is in schema property of this class
@@ -795,14 +794,14 @@ public class SchemaManagerBean implements Serializable {
     /**
      * Method removes binary files from DB for actual card
      * @param document - object (cabinet card) to delete files from
-     * @param selectedDB - actual user DB
+     * @param selectedUser - actual user DB
      */
-    private void removeFilesInDocument(BasicDBObject document, String selectedDB) {
+    private void removeFilesInDocument(BasicDBObject document, String selectedUser) {
         BasicDBList files = (BasicDBList) document.get("Files");
         //if binaryDataField is defined
         if (files != null) {
             //GridFS DB with files
-            GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
+            GridFS binaryDB = new GridFS(dbUtils.getDB(), selectedUser);
 
             for (Object file : files) {
                 ObjectId fileId = (ObjectId) file;
