@@ -7,7 +7,7 @@
     <!-- Login filter -->
     <filter>
         <filter-name>LoginFilter</filter-name>
-        <filter-class>cz.muni.fi.pv168.kartoteka.LoginFilter</filter-class>
+        <filter-class>cz.muni.fi.macik.kartoteka.beans.LoginFilter</filter-class>
     </filter>
     <!-- Set the login filter to secure all the pages in the /secured/* path of the application  -->
     <filter-mapping>
@@ -27,7 +27,7 @@
         <servlet-name>Faces Servlet</servlet-name>
         <url-pattern>*.xhtml</url-pattern>
     </servlet-mapping>
-<!--    <servlet-mapping>
+    <!--    <servlet-mapping>
         <servlet-name>Faces Servlet</servlet-name>
         <url-pattern>*.*</url-pattern>
     </servlet-mapping>-->
@@ -37,6 +37,6 @@
         </session-timeout>
     </session-config>
     <welcome-file-list>
-        <welcome-file>index.xhtml</welcome-file>
+        <welcome-file>welcome.xhtml</welcome-file>
     </welcome-file-list>
 </web-app>
