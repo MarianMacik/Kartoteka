@@ -1,7 +1,7 @@
 package cz.muni.fi.pv168.validator;
 
 /**
- * Intergace for all validators.
+ * Interface for all validators.
  * @author Marián Macik
  */
 public interface Validator {
