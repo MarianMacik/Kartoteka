@@ -50,20 +50,20 @@ public class FilingCabinetManagerBean implements Serializable {
     /**
      * Method loads filing cabinet - schema together with cards - from DB
      * @param id - id of schema, when we load schema, we can load also cabinet by schema title
-     * @param selectedUser - actual user DB
+     * @param selectedDB - actual user DB
      * @return "cabinet.xhtml?faces-redirect=true" - navigates to page to view the cabinet
      */
-    public String loadFilingCabinetAndShow(ObjectId id, String selectedUser) {
+    public String loadFilingCabinetAndShow(ObjectId id, String selectedDB) {
         FilingCabinet newFilingCabinet = new FilingCabinet();
 
         //load schema first, with help of schemaManager method loadSchema - returns schema
-        newFilingCabinet.setSchema(schemaManager.loadSchema(id, selectedUser));
+        newFilingCabinet.setSchema(schemaManager.loadSchema(id, selectedDB));
 
         //list of future cabinet cards
         List<CabinetCard> cabinetCards = new ArrayList<>();
 
         String collectionName = newFilingCabinet.getSchema().getTitle();
-        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + collectionName);
+        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(collectionName);
         //now we will load data itself from the scheme
 
         //all documents in collection
@@ -108,7 +108,7 @@ public class FilingCabinetManagerBean implements Serializable {
                 }
             }
             //now we will load binary files with theri IDs - IDs are for deletion
-            List<Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(cur, selectedUser);
+            List<Entry<ObjectId, StreamedContent>> filesInDB = loadBinaryFiles(cur, selectedDB);
 
             cabinetCards.add(new CabinetCard(cur.getObjectId("_id"), cardData, filesInDB));
 
@@ -165,11 +165,11 @@ public class FilingCabinetManagerBean implements Serializable {
 
     /**
      * Method for saving new cabinet card to DB
-     * @param selectedUser - actual user DB
+     * @param selectedDB - actual user DB
      */
-    public void addNewCabinetCard(String selectedUser) {
+    public void addNewCabinetCard(String selectedDB) {
         String collectionName = filingCabinet.getSchema().getTitle();
-        DBCollection collection = dbUtils.getDB().getCollection(selectedUser + collectionName);
+        DBCollection collection = dbUtils.getMongoClient().getDB(selectedDB).getCollection(collectionName);
         
         //resource budnle for l10n
         FacesContext ctx = FacesContext.getCurrentInstance();
@@ -244,7 +244,7 @@ public class FilingCabinetManagerBean implements Serializable {
         RequestContext.getCurrentInstance().execute("addDialog.hide()");
 
         //refresh whole filingCabinet and erase newCabinetCard
-        loadFilingCabinetAndShow(filingCabinet.getSchema().getId(), selectedUser);
+        loadFilingCabinetAndShow(filingCabinet.getSchema().getId(), selectedDB);
     }
 
     /**
@@ -422,17 +422,17 @@ public class FilingCabinetManagerBean implements Serializable {
     /**
      * Method loads binary files from DB for actual card
      * @param document - object (cabinet card) to load files from
-     * @param selectedUser - actual user DB
+     * @param selectedDB - actual user DB
      * @return List of Map entries - ObjectId of binary file and content whihc can be streamed
      */
-    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject document, String selectedUser) {
+    private List<Entry<ObjectId, StreamedContent>> loadBinaryFiles(BasicDBObject document, String selectedDB) {
         Map<ObjectId, StreamedContent> map = new HashMap<>();
         BasicDBList files = (BasicDBList) document.get("Files");
         //if file field is defined
         if (files != null) {
             for (Object file : files) {
                 ObjectId fileId = (ObjectId) file;
-                GridFS binaryDB = new GridFS(dbUtils.getDB(), selectedUser);
+                GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
                 GridFSDBFile fileForOutput = binaryDB.findOne(fileId);
                 //no need for closing InputStream - primefaces will close it accordint to documentation
                 StreamedContent fileContent = new DefaultStreamedContent(fileForOutput.getInputStream(), "", fileForOutput.getFilename());

@@ -12,7 +12,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
  * 
  * @author Marián Macik
  */
-public class IntegrationTests {
+public class IntegrationTest {
 
     private WebDriver driver;
     private String baseUrl;
