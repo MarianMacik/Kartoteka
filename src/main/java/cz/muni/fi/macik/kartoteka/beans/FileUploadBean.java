@@ -58,18 +58,17 @@ public class FileUploadBean implements Serializable{
      * @param event - represents event that triggers the file upload
      */
     public void uploadFile(FileUploadEvent event){
-        System.out.println(event.getFile().getFileName());
         
         String selectedDB = testBean.getSelectedDB();
         //get GridFS instance
         GridFS binaryDB = new GridFS(dbUtils.getMongoClient().getDB(selectedDB));
-        try {
-            //get inputFile and save it to GridFS
-            InputStream is = event.getFile().getInputstream();
+        //get inputFile and save it to GridFS
+        //try with resources - is will be closed automatically
+        try (InputStream is = event.getFile().getInputstream()){
+            
             GridFSInputFile gfsFile = binaryDB.createFile(is, event.getFile().getFileName());
             gfsFile.save();
             ObjectId fileId = (ObjectId) gfsFile.getId();
-            System.out.println(gfsFile);
             
             String schemaTitle = filingCabinetManagerBean.getFilingCabinet().getSchema().getTitle();
             //now link id of it to CabinetCard
@@ -80,8 +79,6 @@ public class FileUploadBean implements Serializable{
             BasicDBObject update = new BasicDBObject("Files", fileId);
             
             filingCabinet.update(match, new BasicDBObject("$push", update));
-            
-            is.close();
             
         } catch (IOException ex) {
             Logger.getLogger(FileUploadBean.class.getName()).log(Level.SEVERE, "Problem with file uploading", ex);

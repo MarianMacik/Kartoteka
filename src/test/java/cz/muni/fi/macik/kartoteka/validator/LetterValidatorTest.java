@@ -1,7 +1,5 @@
 package cz.muni.fi.macik.kartoteka.validator;
 
-import cz.muni.fi.macik.kartoteka.validator.ValidatorType;
-import cz.muni.fi.macik.kartoteka.validator.LetterValidator;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
